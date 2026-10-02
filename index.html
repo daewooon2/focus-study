@@ -391,7 +391,7 @@
     <ul>
       <li>화면 가운데에 <b>곱셈 문제가 소리 없이 천천히</b> 나타납니다.</li>
       <li>보이는 대로 키보드 숫자로 답을 입력하고 <code>Enter</code>를 누르세요.</li>
-      <li>10초가 지나면 문제가 사라집니다. 놓쳐도 괜찮습니다.</li>
+      <li>문제는 아주 흐릿하게 시작해 10초에 걸쳐 또렷해지고, 나타나기 시작한 지 20초가 지나면 사라집니다. 놓쳐도 괜찮습니다.</li>
       <li>정답 여부는 표시되지 않습니다.</li>
     </ul>
   </div>
@@ -518,21 +518,21 @@ const CONFIG = {
   eventsPerVideo: 6,          // 영상당 고정 개수 (두 조건을 같게)
   firstEventMinSec: 20, firstEventMaxSec: 30,
   gapMinSec: 25, gapMaxSec: 45,
-  tailPaddingSec: 15,         // 구간 끝 이 시간 안에는 이벤트 없음
+  tailPaddingSec: 20,         // 구간 끝 이 시간 안에는 이벤트 없음 (계산 문제 제한시간 이상)
 
   // 프로브 (원래 방식)
   probeWindowSec: 7,
 
   // 계산 문제 (무음, 서서히 등장)
-  mathFadeSec: 2,             // 투명도 0→100%에 걸리는 시간
-  mathTimeoutSec: 10,         // 등장 시작부터 이 시간 안에 Enter가 없으면 놓침
+  mathFadeSec: 10,            // 투명도 0→100%에 걸리는 시간
+  mathTimeoutSec: 20,         // 등장 시작부터 이 시간 안에 Enter가 없으면 놓침 (완전히 보인 뒤 10초)
   mathMin: 2, mathMax: 9,     // 한 자리 × 한 자리 (0, 1 제외)
   baselineCount: 10,          // 강의 전·후 기준 RT 문제 수
   baselineGapMinSec: 1.5, baselineGapMaxSec: 3.0,
 
   // 영상 없이 전체 흐름만 테스트할 때 true
   testMode: false,
-  test: { videoSec:40, practiceSec:20, events:2, firstSec:8, gapMin:10, gapMax:13, baseline:3 },
+  test: { videoSec:70, practiceSec:30, events:2, firstSec:8, gapMin:25, gapMax:28, baseline:3 },
 
   // 녹화 설정
   videoWidth: 1280,
@@ -862,7 +862,7 @@ function blockIntro(blk, blockNo){
       <div class="card"><h3>진행 방식</h3><ul>
         <li>강의를 보는 동안 가끔 화면 가운데에 <b>곱셈 문제가 소리 없이 천천히</b> 나타납니다.</li>
         <li>알아차리면 바로 숫자 키로 답을 입력하고 <code>Enter</code>를 누르세요.</li>
-        <li>10초가 지나면 문제가 사라집니다. 강의는 멈추지 않습니다.</li>
+        <li>문제는 10초에 걸쳐 서서히 또렷해지고, 20초가 지나면 사라집니다. 강의는 멈추지 않습니다.</li>
       </ul></div>
       <div class="card"><h3>강의가 우선입니다</h3>
         <p style="font-size:14px">문제를 기다리며 화면을 지켜볼 필요는 없습니다. 평소처럼 강의를 보다가 문제가 보이면 그때 풀면 됩니다.</p></div>
@@ -1038,8 +1038,11 @@ function runVideo(condition, spec, phase, blockNo, videoKey){
         t = S.player.getCurrentTime() - (spec.startSec || 0);
       }
 
-      if(idx < schedule.length && t >= schedule[idx]){
-        const at = schedule[idx]; idx++;
+      // 이전 이벤트가 아직 열려 있으면 닫힐 때까지 다음 이벤트를 미룬다
+      const busy = !!S.math || $("probe").classList.contains("show");
+      if(!busy && idx < schedule.length && t >= schedule[idx]){
+        idx++;
+        const at = Math.round(t * 100) / 100;          // 실제 등장 시점 (미뤄졌으면 예정보다 늦음)
         if(condition === "probe") openProbe(at, idx);
         else openMath(at, idx);
       }
