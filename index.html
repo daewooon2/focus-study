@@ -279,7 +279,7 @@
 <header class="hdr">
   <div class="brand">온라인 강의 집중도 연구</div>
   <ol class="steps" id="steps">
-    <li>동의</li><li>카메라</li><li>계산</li><li>강의 1</li><li>강의 2</li><li>제출</li>
+    <li>동의</li><li>카메라</li><li>안내</li><li>파트 1</li><li>파트 2</li><li>제출</li>
   </ol>
 </header>
 
@@ -373,34 +373,23 @@
 <section id="s-brief" class="screen">
   <div class="overline">03 — 진행 순서</div>
   <h1>이렇게 진행됩니다</h1>
-  <p class="sub">짧은 강의 두 편을 서로 다른 방식으로 봅니다. 각 단계 전에 다시 안내합니다.</p>
+  <p class="sub">두 파트로 나뉘며, 파트마다 5분짜리 강의를 하나씩 봅니다. 파트 순서는 사람마다 다릅니다.</p>
 
   <div class="card">
-    <h3>순서</h3>
+    <h3>두 파트</h3>
     <ul>
-      <li><b>계산 10문제</b> — 화면에 나타나는 곱셈 문제의 답을 입력합니다 (약 1분)</li>
-      <li><b>강의 1</b> — 5분 강의, 끝나면 내용 문제 2개</li>
-      <li><b>강의 2</b> — 다른 5분 강의, 다른 응답 방식, 끝나면 내용 문제 2개</li>
-      <li><b>계산 10문제</b> — 처음과 같은 과제 (약 1분)</li>
-      <li><b>파일 저장과 제출</b></li>
-    </ul>
-  </div>
-
-  <div class="card">
-    <h3>계산 문제 푸는 법</h3>
-    <ul>
-      <li>화면 가운데에 <b>곱셈 문제가 소리 없이 천천히</b> 나타납니다.</li>
-      <li>보이는 대로 키보드 숫자로 답을 입력하고 <code>Enter</code>를 누르세요.</li>
-      <li>문제는 아주 흐릿하게 시작해 10초에 걸쳐 또렷해지고, 나타나기 시작한 지 20초가 지나면 사라집니다. 놓쳐도 괜찮습니다.</li>
-      <li>정답 여부는 표시되지 않습니다.</li>
+      <li><b>계산 파트</b> — 곱셈 문제 10개를 먼저 풀고, 이어서 바로 강의를 봅니다. 강의 중에도 같은 문제가 가끔 나타납니다. 강의가 끝나면 곱셈 문제 10개를 더 풉니다.</li>
+      <li><b>딩 소리 파트</b> — 40초 연습 후 이어서 바로 강의를 봅니다. 강의 중 "딩" 소리가 나면 질문에 답합니다.</li>
+      <li>각 강의가 끝나면 내용 문제 2개를 풉니다.</li>
+      <li>파트를 시작하기 직전에 자세한 방법을 다시 안내합니다.</li>
     </ul>
   </div>
 
   <div class="warn">
-    다음 버튼을 누르면 <b>녹화가 시작</b>됩니다. 끝날 때까지 <b>브라우저 탭을 닫거나 새로고침하지 마세요.</b> 데이터가 모두 사라집니다.
+    첫 파트를 시작하면 <b>녹화가 시작</b>됩니다. 끝날 때까지 <b>브라우저 탭을 닫거나 새로고침하지 마세요.</b> 데이터가 모두 사라집니다.
   </div>
 
-  <button id="btnStart">녹화 시작하고 계산 문제 풀기</button>
+  <button id="btnStart">다음</button>
 </section>
 
 <!-- ══════════════ 공용 안내 화면 ══════════════ -->
@@ -507,10 +496,10 @@ const CONFIG = {
       ],
     },
   },
-  // 연습용 40초 — 같은 시리즈의 다른 편 (본 강의와 겹치지 않음)
+  // 딩 소리 연습용 40초 — 같은 시리즈의 다른 편 (본 강의와 겹치지 않음)
   practice: {
     probe: { id:"amnveO6HZnE", startSec:20, endSec:60, title:"공자의 인" },
-    math:  { id:"-wcsk3Bywww", startSec:20, endSec:60, title:"칸트의 의무론" },
+    // 계산 파트는 강의 전 계산 10문제가 연습 역할을 한다
   },
   practiceEventSec: 15,       // 연습 영상에서 이벤트 1회 시각
 
@@ -788,42 +777,36 @@ $("btnStart").addEventListener("click", () => runSession());
 
 async function runSession(){
   $("btnStart").disabled = true;
-  // 진행 화면을 띄운 뒤 녹화 → 점멸 마커
-  setStage("계산 문제", "곱셈 문제가 천천히 나타나면 답을 입력하고 Enter를 누르세요.", 2);
-  blankStage("잠시 후 시작합니다");
-  startRecording();
-  await flashMarker();
-
-  await runBaseline("baseline_pre", 0);
 
   for(let i = 0; i < S.plan.length; i++){
     const blk = S.plan[i];
     const blockNo = i + 1;
-    const choice = await infoScreen(blockIntro(blk, blockNo), [
-      { label:"연습해 보기 (40초)", val:"practice" },
-      { label:"연습 없이 바로 시작", val:"go", ghost:true },
-    ], 2 + blockNo);
-    if(choice === "practice"){
-      await runVideo(blk.condition, CONFIG.practice[blk.condition], "practice", blockNo, null);
-      await infoScreen({
-        over:`강의 ${blockNo}`, title:"연습이 끝났습니다",
-        sub:"이제 본 강의를 시작합니다. 약 4~5분 걸립니다.",
-        body: blk.condition === "probe"
-          ? `<div class="card"><p style="font-size:14px">소리가 나면 <b>소리가 나기 직전</b> 주의가 어디에 있었는지 답해 주세요.</p></div>`
-          : `<div class="card"><p style="font-size:14px">강의 내용을 이해하는 것이 우선입니다. 문제를 기다리며 화면을 지켜볼 필요는 없고, 보이면 그때 풀면 됩니다.</p></div>`,
-      }, [{ label:"강의 시작", val:"go" }], 2 + blockNo);
-    }
     const spec = CONFIG.videos[blk.video];
-    await runVideo(blk.condition, spec, "main", blockNo, blk.video);
-    await runQuiz(blk.video, blockNo);
-  }
+    await infoScreen(blockIntro(blk, blockNo), [{ label:"시작", val:"go" }], 2 + blockNo);
 
-  await infoScreen({
-    over:"마지막", title:"계산 문제 10개만 더 풀면 끝납니다",
-    sub:"처음과 같은 방식입니다. 약 1분 걸립니다.",
-    body:"",
-  }, [{ label:"시작", val:"go" }], 2);
-  await runBaseline("baseline_post", 3);
+    if(i === 0){
+      // 첫 파트 시작 버튼을 누르면 녹화 → 점멸 마커
+      setStage(`파트 ${blockNo}`, "잠시 후 시작합니다.", 2 + blockNo);
+      blankStage("녹화를 시작합니다");
+      startRecording();
+      await flashMarker();
+    }
+
+    if(blk.condition === "math"){
+      // 계산 10문제 → 바로 강의(+계산) → 내용 문제 → 계산 10문제
+      await runBaseline("baseline_pre", blockNo);
+      await transition(blockNo, "이어서 강의가 시작됩니다. 강의 중에도 계산 문제가 가끔 나타납니다.");
+      await runVideo("math", spec, "main", blockNo, blk.video);
+      await runQuiz(blk.video, blockNo);
+      await runBaseline("baseline_post", blockNo);
+    } else {
+      // 딩 소리 연습 → 바로 강의(+딩 소리) → 내용 문제
+      await runVideo("probe", CONFIG.practice.probe, "practice", blockNo, null);
+      await transition(blockNo, "연습이 끝났습니다. 이어서 강의가 시작됩니다.");
+      await runVideo("probe", spec, "main", blockNo, blk.video);
+      await runQuiz(blk.video, blockNo);
+    }
+  }
 
   S.meta.finishedAt = new Date().toISOString();
   await stopRecording();
@@ -831,18 +814,24 @@ async function runSession(){
   show("s-done", 5);
 }
 
+/* 단계 사이 3초 안내 (버튼 없이 자동으로 넘어감) */
+async function transition(blockNo, text){
+  setStage(`파트 ${blockNo}`, text, 2 + blockNo);
+  blankStage(text);
+  await sleep(3000);
+}
+
 function blockIntro(blk, blockNo){
-  const quizNote = `<div class="card"><h3>끝나면</h3><p style="font-size:14px">강의 내용에 대한 객관식 문제 2개를 풉니다. 강의 내용을 잘 따라가 주세요.</p></div>`;
+  const quizNote = `<div class="card"><h3>강의가 끝나면</h3><p style="font-size:14px">강의 내용에 대한 객관식 문제 2개를 풉니다. 강의 내용을 잘 따라가 주세요.</p></div>`;
   if(blk.condition === "probe"){
     return {
-      over:`강의 ${blockNo} / 2`, title:"딩 소리가 나면 답해 주세요",
-      sub:"5분짜리 강의를 봅니다. 이번 강의에서는 계산 문제가 나오지 않습니다.",
+      over:`파트 ${blockNo} / 2`, title:"딩 소리가 나면 답해 주세요",
+      sub:"40초 연습이 끝나면 이어서 바로 5분 강의가 시작됩니다. 이 파트에서는 계산 문제가 나오지 않습니다.",
       body:`
         <div class="card"><h3>진행 방식</h3><ul>
-          <li>강의를 보는 동안 가끔 <b>"딩"</b> 소리가 납니다.</li>
-          <li>소리가 나면 화면 아래에 질문이 나타납니다.</li>
+          <li>영상을 보는 동안 가끔 <b>"딩"</b> 소리가 나고, 화면 아래에 질문이 나타납니다.</li>
           <li><b>소리가 나기 직전</b> 당신의 주의가 어디에 있었는지 답해 주세요.</li>
-          <li>키보드 <code>1</code> <code>2</code> <code>3</code> <code>4</code> 또는 마우스 클릭으로 답합니다. 응답 시간은 7초이며 강의는 멈추지 않습니다.</li>
+          <li>키보드 <code>1</code> <code>2</code> <code>3</code> <code>4</code> 또는 마우스 클릭으로 답합니다. 응답 시간은 7초이며 영상은 멈추지 않습니다.</li>
         </ul></div>
         <div class="card"><h3>선택지 구분</h3><ul>
           <li><b>1번</b> — 강의 내용을 따라가고 있었다</li>
@@ -856,17 +845,22 @@ function blockIntro(blk, blockNo){
     };
   }
   return {
-    over:`강의 ${blockNo} / 2`, title:"강의 중에 계산 문제가 나타납니다",
-    sub:"5분짜리 강의를 봅니다. 이번 강의에서는 소리가 나지 않습니다.",
+    over:`파트 ${blockNo} / 2`, title:"계산 문제를 풀고, 이어서 강의를 봅니다",
+    sub:"계산 10문제가 끝나면 이어서 바로 5분 강의가 시작됩니다. 이 파트에서는 소리가 나지 않습니다.",
     body:`
-      <div class="card"><h3>진행 방식</h3><ul>
-        <li>강의를 보는 동안 가끔 화면 가운데에 <b>곱셈 문제가 소리 없이 천천히</b> 나타납니다.</li>
-        <li>알아차리면 바로 숫자 키로 답을 입력하고 <code>Enter</code>를 누르세요.</li>
-        <li>문제는 10초에 걸쳐 서서히 또렷해지고, 20초가 지나면 사라집니다. 강의는 멈추지 않습니다.</li>
+      <div class="card"><h3>순서</h3><ul>
+        <li><b>계산 10문제</b> — 영상 없이 곱셈 문제만 풉니다 (약 1분)</li>
+        <li><b>강의</b> — 강의를 보는 동안에도 같은 곱셈 문제가 가끔 나타납니다</li>
+        <li><b>내용 문제 2개</b></li>
+        <li><b>계산 10문제</b> — 처음과 같은 과제 (약 1분)</li>
       </ul></div>
-      <div class="card"><h3>강의가 우선입니다</h3>
-        <p style="font-size:14px">문제를 기다리며 화면을 지켜볼 필요는 없습니다. 평소처럼 강의를 보다가 문제가 보이면 그때 풀면 됩니다.</p></div>
-      ${quizNote}`,
+      <div class="card"><h3>계산 문제 푸는 법</h3><ul>
+        <li>화면 가운데에 <b>곱셈 문제가 소리 없이</b> 아주 흐릿하게 나타나 10초에 걸쳐 또렷해집니다.</li>
+        <li>알아차리면 바로 숫자 키로 답을 입력하고 <code>Enter</code>를 누르세요.</li>
+        <li>나타나기 시작한 지 20초가 지나면 사라집니다. 놓쳐도 괜찮고, 정답 여부는 표시되지 않습니다.</li>
+      </ul></div>
+      <div class="card"><h3>강의 중에는 강의가 우선입니다</h3>
+        <p style="font-size:14px">문제를 기다리며 화면을 지켜볼 필요는 없습니다. 평소처럼 강의를 보다가 문제가 보이면 그때 풀면 됩니다.</p></div>`,
   };
 }
 
@@ -972,7 +966,7 @@ function makePlayer(spec){
 function runVideo(condition, spec, phase, blockNo, videoKey){
   return new Promise(async (resolve) => {
     const isPractice = phase === "practice";
-    const label = isPractice ? `연습 — ${condition === "probe" ? "딩 소리에 답하기" : "계산 문제 풀기"}` : `강의 ${blockNo}`;
+    const label = isPractice ? `파트 ${blockNo} — 연습 (40초)` : `파트 ${blockNo} — 강의`;
     const sub = condition === "probe"
       ? "소리가 나면 화면 아래 질문에 답해 주세요."
       : "곱셈 문제가 보이면 답을 입력하고 Enter를 누르세요.";
@@ -1058,7 +1052,10 @@ function runVideo(condition, spec, phase, blockNo, videoKey){
 /* ── 기준 RT: 영상 없이 계산 문제만 ── */
 async function runBaseline(tag, blockNo){
   const n = CONFIG.testMode ? CONFIG.test.baseline : CONFIG.baselineCount;
-  setStage("계산 문제", `곱셈 문제가 천천히 나타나면 답을 입력하고 Enter를 누르세요. (총 ${n}문제)`, 2);
+  const subText = tag === "baseline_post"
+    ? `마지막으로 계산 문제 ${n}개를 더 풉니다. 처음과 같은 방식입니다.`
+    : `곱셈 문제가 천천히 나타나면 답을 입력하고 Enter를 누르세요. (총 ${n}문제)`;
+  setStage(`파트 ${blockNo} — 계산 문제`, subText, 2 + blockNo);
   blankStage("");
   S.ctx = { block:blockNo, phase:tag, condition:"math", video:"" };
   for(let i = 1; i <= n; i++){
@@ -1239,7 +1236,7 @@ function pushEvent(ctx, fields){
    ═══════════════════════════════════════════════ */
 function runQuiz(videoKey, blockNo){
   const items = CONFIG.videos[videoKey].quiz;
-  $("quizOver").textContent = `강의 ${blockNo} — 내용 확인`;
+  $("quizOver").textContent = `파트 ${blockNo} — 내용 확인`;
   $("quizBody").innerHTML = items.map((q,i) => `
     <div class="quizQ">
       <p>${i+1}. ${q.q}</p>
