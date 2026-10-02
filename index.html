@@ -253,6 +253,24 @@
     .steps li{padding:3px 9px;font-size:11px}
     .opt{width:100%}
   }
+
+  /* ── 계산 문제 (소리 없이 서서히 나타남) ─────────── */
+  #mathBox{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    z-index:4;opacity:0;pointer-events:none;
+    background:rgba(20,19,17,.9);border:1px solid var(--line-2);border-radius:16px;
+    padding:18px 34px;font-size:clamp(26px,4.2vw,40px);font-weight:600;
+    letter-spacing:.02em;white-space:nowrap;color:var(--fg);
+  }
+  #mathBox .ans{
+    display:inline-block;min-width:2.2ch;border-bottom:2px solid var(--accent);
+    text-align:center;margin-left:.3ch;color:var(--accent);
+  }
+  #mathBox .hint{display:block;font-size:12px;font-weight:500;color:var(--faint);
+    letter-spacing:.02em;text-align:center;margin-top:6px}
+  .blankStage{display:flex;align-items:center;justify-content:center;height:100%;
+    color:#4a4642;font-size:14px}
+  .btnRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 </style>
 </head>
 <body>
@@ -261,7 +279,7 @@
 <header class="hdr">
   <div class="brand">온라인 강의 집중도 연구</div>
   <ol class="steps" id="steps">
-    <li>동의</li><li>카메라</li><li>연습</li><li>강의</li><li>문제</li><li>제출</li>
+    <li>동의</li><li>카메라</li><li>계산</li><li>강의 1</li><li>강의 2</li><li>제출</li>
   </ol>
 </header>
 
@@ -269,7 +287,7 @@
 <section id="s-intro" class="screen active">
   <div class="overline">01 — 참여 동의</div>
   <h1>온라인 강의 집중도 연구</h1>
-  <p class="sub">참여해 주셔서 감사합니다. 총 소요 시간은 약 30분입니다.</p>
+  <p class="sub">참여해 주셔서 감사합니다. 총 소요 시간은 약 20분입니다.</p>
 
   <div class="card">
     <h3>연구 목적</h3>
@@ -279,9 +297,9 @@
   <div class="card">
     <h3>수집하는 정보</h3>
     <ul>
-      <li>웹캠 영상 (얼굴 및 상체, 약 22분)</li>
-      <li>강의 중 주기적으로 응답하는 집중 상태 자기보고</li>
-      <li>강의 종료 후 이해도 퀴즈 응답</li>
+      <li>웹캠 영상 (얼굴 및 상체, 약 15분)</li>
+      <li>강의 중 응답 — 집중 상태 자기보고, 간단한 곱셈 문제의 답과 응답 시간</li>
+      <li>강의마다 내용 확인 문제 2개의 응답</li>
       <li>휴대폰 번호 — 사례 지급과 제출 파일 확인 용도</li>
     </ul>
   </div>
@@ -351,102 +369,85 @@
   <span class="status" id="camStatus"></span>
 </section>
 
-<!-- ══════════════ 2. 연습 안내 ══════════════ -->
+<!-- ══════════════ 2. 전체 안내 ══════════════ -->
 <section id="s-brief" class="screen">
-  <div class="overline">03 — 응답 방법</div>
-  <h1>이렇게 답하시면 됩니다</h1>
-  <p class="sub">본 강의 전에 2분간 연습해 보겠습니다.</p>
+  <div class="overline">03 — 진행 순서</div>
+  <h1>이렇게 진행됩니다</h1>
+  <p class="sub">짧은 강의 두 편을 서로 다른 방식으로 봅니다. 각 단계 전에 다시 안내합니다.</p>
 
   <div class="card">
-    <h3>진행 방식</h3>
+    <h3>순서</h3>
     <ul>
-      <li>강의를 보는 동안 가끔 <b>"딩"</b> 소리가 납니다.</li>
-      <li>소리가 나면 화면 아래에 질문이 나타납니다.</li>
-      <li><b>소리가 나기 직전</b> 당신의 주의가 어디에 있었는지 답해 주세요.</li>
-      <li>키보드 <code>1</code> <code>2</code> <code>3</code> <code>4</code> 또는 마우스 클릭으로 답할 수 있습니다.</li>
-      <li>응답 시간은 7초이며, 강의는 멈추지 않습니다.</li>
+      <li><b>계산 10문제</b> — 화면에 나타나는 곱셈 문제의 답을 입력합니다 (약 1분)</li>
+      <li><b>강의 1</b> — 5분 강의, 끝나면 내용 문제 2개</li>
+      <li><b>강의 2</b> — 다른 5분 강의, 다른 응답 방식, 끝나면 내용 문제 2개</li>
+      <li><b>계산 10문제</b> — 처음과 같은 과제 (약 1분)</li>
+      <li><b>파일 저장과 제출</b></li>
     </ul>
   </div>
 
   <div class="card">
-    <h3>선택지 구분</h3>
+    <h3>계산 문제 푸는 법</h3>
     <ul>
-      <li><b>1번</b> — 강의 내용을 따라가고 있었다</li>
-      <li><b>2번</b> — 화면은 보고 있었지만 머릿속으로는 다른 생각을 하고 있었다</li>
-      <li><b>3번</b> — 휴대폰을 보는 등 강의가 아닌 다른 것에 시선이나 손이 가 있었다</li>
-      <li><b>4번</b> — 위 중 어디에 해당하는지 판단하기 어렵다</li>
+      <li>화면 가운데에 <b>곱셈 문제가 소리 없이 천천히</b> 나타납니다.</li>
+      <li>보이는 대로 키보드 숫자로 답을 입력하고 <code>Enter</code>를 누르세요.</li>
+      <li>10초가 지나면 문제가 사라집니다. 놓쳐도 괜찮습니다.</li>
+      <li>정답 여부는 표시되지 않습니다.</li>
     </ul>
-  </div>
-
-  <div class="card">
-    <h3>솔직하게 답해 주세요</h3>
-    <p style="font-size:14px;margin:0">
-      강의 중 다른 생각이 드는 것은 지극히 정상입니다. 얼마나 집중했는지는
-      평가 대상이 아니며, 사례도 응답 내용과 무관하게 동일하게 지급됩니다.
-      있는 그대로 답해 주시는 것이 연구에 가장 큰 도움이 됩니다.
-    </p>
   </div>
 
   <div class="warn">
-    녹화가 시작되면 <b>브라우저 탭을 닫거나 새로고침하지 마세요.</b> 데이터가 모두 사라집니다.
+    다음 버튼을 누르면 <b>녹화가 시작</b>됩니다. 끝날 때까지 <b>브라우저 탭을 닫거나 새로고침하지 마세요.</b> 데이터가 모두 사라집니다.
   </div>
 
-  <button id="btnDemo">연습 시작</button>
+  <button id="btnStart">녹화 시작하고 계산 문제 풀기</button>
 </section>
 
-<!-- ══════════════ 3. 강의 (연습/본) ══════════════ -->
+<!-- ══════════════ 공용 안내 화면 ══════════════ -->
+<section id="s-info" class="screen">
+  <div class="overline" id="infoOver"></div>
+  <h1 id="infoTitle"></h1>
+  <p class="sub" id="infoSub"></p>
+  <div id="infoBody"></div>
+  <div class="btnRow" id="infoBtns"></div>
+</section>
+
+<!-- ══════════════ 공용 진행 화면 (영상 / 계산) ══════════════ -->
 <section id="s-lecture" class="screen">
-  <h1 id="lecTitle">연습</h1>
-  <p class="sub" id="lecSub">소리가 나면 화면 아래 질문에 답해 주세요.</p>
+  <h1 id="lecTitle">강의</h1>
+  <p class="sub" id="lecSub"></p>
 
   <div class="lecBar">
     <span class="rec" id="recBadge" style="visibility:hidden">녹화 중</span>
     <span class="status" id="lecStatus"></span>
-    <button id="btnSkipDemo" class="ghost small" style="display:none">연습 건너뛰고 본 강의로</button>
+    <button id="btnSkip" class="ghost small" style="display:none">연습 건너뛰기</button>
   </div>
 
   <div class="lectureStage">
     <div id="playerHost"><div id="player"></div></div>
     <div id="shield"></div>
     <div id="flash"></div>
+    <div id="mathBox"></div>
   </div>
-
 </section>
 
-<!-- ══════════════ 4. 연습 종료 ══════════════ -->
-<section id="s-ready" class="screen">
-  <div class="overline">04 — 본 강의</div>
-  <h1>연습이 끝났습니다</h1>
-  <p class="sub">이제 본 강의를 시작합니다. 약 20분 소요됩니다.</p>
-  <div class="card">
-    <h3>시작 전 확인</h3>
-    <ul>
-      <li>휴대폰을 무음으로 하고 시야 밖에 두세요.</li>
-      <li>다른 프로그램의 알림을 꺼 주세요.</li>
-      <li>자세는 평소 공부할 때처럼 편하게 하시면 됩니다.</li>
-    </ul>
-  </div>
-  <div class="warn">본 강의가 시작되면 녹화가 시작됩니다. 중간에 창을 닫지 마세요.</div>
-  <button id="btnMain">본 강의 시작</button>
-</section>
-
-<!-- ══════════════ 5. 퀴즈 ══════════════ -->
+<!-- ══════════════ 퀴즈 ══════════════ -->
 <section id="s-quiz" class="screen">
-  <div class="overline">05 — 이해도 확인</div>
-  <h1>강의 내용을 확인할게요</h1>
-  <p class="sub">강의 내용에 대한 간단한 문제입니다. 모르면 찍으셔도 괜찮습니다.</p>
+  <div class="overline" id="quizOver">내용 확인</div>
+  <h1>방금 본 강의 내용을 확인할게요</h1>
+  <p class="sub">모르면 찍으셔도 괜찮습니다.</p>
   <div id="quizBody"></div>
-  <button id="btnQuiz">제출</button>
+  <button id="btnQuiz">다음</button>
 </section>
 
-<!-- ══════════════ 6. 완료 ══════════════ -->
+<!-- ══════════════ 완료 ══════════════ -->
 <section id="s-done" class="screen">
   <div class="overline">06 — 제출</div>
   <h1>참여해 주셔서 감사합니다</h1>
-  <p class="sub">아래 파일 두 개를 모두 내려받아 연구팀에 전달해 주세요.</p>
+  <p class="sub">아래 파일 세 개를 모두 저장해 연구팀에 전달해 주세요.</p>
 
   <div class="warn">
-    <b>두 파일이 모두 필요합니다.</b> 하나라도 빠지면 데이터를 사용할 수 없습니다.
+    <b>세 파일이 모두 필요합니다.</b> 하나라도 빠지면 데이터를 사용할 수 없습니다.
     영상 파일은 크기가 커서 저장에 시간이 걸릴 수 있습니다.
   </div>
 
@@ -476,24 +477,62 @@
    설정 — 이 부분만 수정하면 됩니다
    ═══════════════════════════════════════════════ */
 const CONFIG = {
-  // YouTube 영상 ID (주소의 v= 뒤 11자리)
-  // 예: https://www.youtube.com/watch?v=abc123XYZ99  →  "abc123XYZ99"
-  // 연습용 2분 — [최강1교시] 고흐와 현대 미술의 탄생 (본 강의와 다른 영상)
-  demo: { id:"F4HREb7qO98", startSec:300, endSec:420 },
-  // 본 강의 20분 — [최강1교시] 서양미술사 1부 르네상스와 매너리즘 (이진숙)
-  main: { id:"6DZmYQONEmM", startSec:180, endSec:1380 },
+  // 본 강의 2편 — EBSi "5분 특강, 세상을 움직이는 생각" (같은 시리즈, 같은 형식)
+  // startSec/endSec: 앞쪽 타이틀과 뒤쪽 음악을 뺀 내레이션 구간 (원본 영상 기준 초)
+  videos: {
+    walzer: {
+      id:"Wh_tS3dKBiI", startSec:15, endSec:283,
+      title:"왈처의 복합 평등",
+      // seg1 = 구간 전반부, seg2 = 후반부
+      quiz: [
+        { seg:1, q:"왈처의 복합 평등에 따르면, 정치권력은 무엇에 따라 분배되어야 하나요?",
+          opts:["필요","자유 교환","토론과 민주주의","자격과 기회의 공정성"], answer:2 },
+        { seg:2, q:"강의의 시민 A·B 예시에서, 왈처가 정의롭지 않다고 본 경우는 무엇인가요?",
+          opts:["A가 자유 교환으로 B보다 많은 돈을 가진 경우",
+                "A가 경제적 능력으로 공직이나 권력을 얻어 B에게 불이익을 준 경우",
+                "A와 B가 모든 가치를 똑같이 나눠 가진 경우",
+                "A가 토론을 거쳐 정치적 지지를 얻은 경우"], answer:1 },
+      ],
+    },
+    macintyre: {
+      id:"0Ik3rPtamj0", startSec:14, endSec:260,
+      title:"매킨타이어의 덕 윤리",
+      quiz: [
+        { seg:1, q:"강의에 따르면, 아리스토텔레스는 품성적 덕이 어떻게 형성된다고 보았나요?",
+          opts:["교육을 통해 길러진다","타고난 본성으로 정해진다",
+                "옳은 행위를 꾸준히 실천해 습관이 되면 형성된다","보편적 도덕 법칙을 따르면 형성된다"], answer:2 },
+        { seg:2, q:"덕 윤리에 따르면, 친구가 곤경에 처했을 때 어떻게 판단하는 것이 바람직한가요?",
+          opts:["보편타당한 법칙인지 먼저 따진다","도와줬을 때 효용이 가장 커지는지 계산한다",
+                "공동체의 규칙을 먼저 확인한다","구체적 상황에서 자연스러운 감정에 따라 돕는다"], answer:3 },
+      ],
+    },
+  },
+  // 연습용 40초 — 같은 시리즈의 다른 편 (본 강의와 겹치지 않음)
+  practice: {
+    probe: { id:"amnveO6HZnE", startSec:20, endSec:60, title:"공자의 인" },
+    math:  { id:"-wcsk3Bywww", startSec:20, endSec:60, title:"칸트의 의무론" },
+  },
+  practiceEventSec: 15,       // 연습 영상에서 이벤트 1회 시각
+
+  // 본 강의 이벤트 (프로브 또는 계산 문제)
+  eventsPerVideo: 6,          // 영상당 고정 개수 (두 조건을 같게)
+  firstEventMinSec: 20, firstEventMaxSec: 30,
+  gapMinSec: 25, gapMaxSec: 45,
+  tailPaddingSec: 15,         // 구간 끝 이 시간 안에는 이벤트 없음
+
+  // 프로브 (원래 방식)
+  probeWindowSec: 7,
+
+  // 계산 문제 (무음, 서서히 등장)
+  mathFadeSec: 2,             // 투명도 0→100%에 걸리는 시간
+  mathTimeoutSec: 10,         // 등장 시작부터 이 시간 안에 Enter가 없으면 놓침
+  mathMin: 2, mathMax: 9,     // 한 자리 × 한 자리 (0, 1 제외)
+  baselineCount: 10,          // 강의 전·후 기준 RT 문제 수
+  baselineGapMinSec: 1.5, baselineGapMaxSec: 3.0,
 
   // 영상 없이 전체 흐름만 테스트할 때 true
   testMode: false,
-  testDemoSec: 60,            // 테스트 모드 연습 길이
-  testMainSec: 180,           // 테스트 모드 본 강의 길이
-
-  // 프로브 간격 (초) — 이 범위에서 무작위
-  probeMinSec: 25,
-  probeMaxSec: 45,
-  firstProbeSec: 30,          // 첫 프로브까지 대기
-  probeWindowSec: 7,          // 응답 제한 시간
-  tailPaddingSec: 10,         // 영상 끝 이 시간 안에는 프로브 없음
+  test: { videoSec:40, practiceSec:20, events:2, firstSec:8, gapMin:10, gapMax:13, baseline:3 },
 
   // 녹화 설정
   videoWidth: 1280,
@@ -503,109 +542,64 @@ const CONFIG = {
   flashDelayMs: 1200,         // 녹화 시작 후 동기화 마커(흰 점멸)까지 대기
 
   // 카메라 검증 임계값
-  shoulderVisibility: 0.5,    // 어깨 랜드마크 신뢰도
-  facePositionMax: 0.55,      // 코의 세로 위치 (0=상단)
-  brightnessMin: 55,          // 얼굴 영역 평균 밝기 (0-255)
+  shoulderVisibility: 0.5,
+  facePositionMax: 0.55,
+  brightnessMin: 55,
 
   // 연락처 / 제출
   contact: "https://open.kakao.com/o/sqGvsEOi",
   submitGuide: "위 파일 3개를 모두 저장한 뒤, 아래 버튼을 눌러 열리는 제출 양식에 3개를 함께 올려 주세요. 구글 로그인이 필요하며, 3개가 모두 있어야 분석에 사용할 수 있습니다.",
   uploadUrl: "https://forms.gle/8uaPJdZakv1PmUwX6",
-
-  // 퀴즈 — 본 강의(3:00~23:00)를 4구간으로 나눠 구간당 2문항
-  // seg1 3:00~8:00 / seg2 8:00~13:00 / seg3 13:00~18:00 / seg4 18:00~23:00
-  quiz: [
-    { seg:1, q:"강의에서 중세는 무엇을 중심으로 한 시대라고 설명했나요?",
-      opts:["상업과 무역","종교와 신(神)","과학과 이성","개인의 자유"], answer:1 },
-    { seg:1, q:"강의에서 설명한 중세 회화의 특징은 무엇인가요?",
-      opts:["화가마다 새로운 주제를 발굴했다","풍경을 사실적으로 묘사했다",
-            "정해진 소수의 장면을 반복해서 그렸다","주문자의 초상이 대부분이었다"], answer:2 },
-
-    { seg:2, q:"중세 사람들은 하나의 그림에 무엇이 담긴다고 생각했나요?",
-      opts:["한 가지 에피소드","여러 시대의 사건","화가의 개인적 감정","후원자 가문의 내력"], answer:0 },
-    { seg:2, q:"강의에서 자연을 모방하려 한 화가로 언급된 사람은 누구인가요?",
-      opts:["렘브란트","모네","벨라스케스","조토"], answer:3 },
-
-    { seg:3, q:"원근법과 관련해, 당시 사람들도 이미 알고 있었다고 설명한 사실은 무엇인가요?",
-      opts:["색은 멀수록 붉어진다","같은 크기라도 가까우면 크게, 멀면 작게 보인다",
-            "그림자는 항상 왼쪽에 생긴다","사람의 눈은 두 개의 상을 만든다"], answer:1 },
-    { seg:3, q:"강의는 중세 미술 작품을 감상하는 방법에 대해 뭐라고 했나요?",
-      opts:["현대인의 감상법이 그대로 적용되지는 않는다","현대 미술과 같은 기준으로 봐야 한다",
-            "미적 가치를 따질 수 없다","작가가 익명이라 분석이 불가능하다"], answer:0 },
-
-    { seg:4, q:"강의에 따르면 중세에서 근대로 나아가는 동력으로 제시된 것은 무엇인가요?",
-      opts:["인쇄술의 쇠퇴","흑사병의 종식","휴머니즘의 정립","종교개혁의 실패"], answer:2 },
-    { seg:4, q:"강의는 원근법을 무엇이라고 규정했나요?",
-      opts:["물감을 아끼기 위한 기법","교회가 정한 제작 규범",
-            "동양화에서 건너온 방식","변화하는 세계관을 도상적으로 압축한 것"], answer:3 },
-  ],
 };
 
 /* ═══════════════════════════════════════════════
    상태
    ═══════════════════════════════════════════════ */
 const S = {
-  pid: "",
-  optionOrder: "fixed",  // 옵션 순서 고정 (2·3번이 논리적 순서를 가짐)
-  stream: null,
-  recorder: null,
-  chunks: [],
-  recordStartPerf: 0,
-  recordStartEpoch: 0,
-  probes: [],            // 기록된 응답
-  schedule: [],          // 예정된 프로브 시각(초)
-  probeIdx: 0,
-  isMain: false,
-  player: null,          // YouTube 플레이어
-  poll: null,            // 재생 위치 폴링
-  segStart: 0,           // 사용 구간 시작(초, 원본 영상 기준)
-  segEnd: 0,
-  lastTime: 0,
-  probeOpenAt: 0,
-  probeTimer: null,
-  stopPromise: null,
-  audioCtx: null,
-  meta: {},
+  pid: "", group: 0, plan: [],
+  stream: null, recorder: null, chunks: [],
+  recordStartPerf: 0, recordStartEpoch: 0,
+  events: [],            // CSV 행 (프로브·계산 공통)
+  player: null, poll: null,
+  ctx: null,             // 현재 진행 중인 블록 정보 {block, phase, condition, video}
+  probeOpenAt: 0, probeTimer: null, probeResolve: null, pendingLectureTime: null,
+  math: null,            // 열려 있는 계산 문제
+  lastPair: "",
+  stopPromise: null, audioCtx: null,
+  meta: { quiz:{}, schedules:{} },
 };
 
 const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const rand = (a, b) => a + Math.random() * (b - a);
 
-/* 상단 진행 표시 — 동의·카메라·연습·강의·문제·제출 */
-const STEP_OF = { "s-intro":0, "s-camera":1, "s-brief":2, "s-lecture":2,
-                  "s-ready":3, "s-quiz":4, "s-done":5 };
-function markStep(id){
-  let i = STEP_OF[id] ?? 0;
-  if(id === "s-lecture" && S.isMain) i = 3;        // 본 강의는 4번째 단계
+/* 상단 진행 표시 — 동의·카메라·계산·강의1·강의2·제출 */
+function markStep(i){
   [...$("steps").children].forEach((li, n) => {
     li.className = n < i ? "done" : (n === i ? "now" : "");
   });
 }
-
-const show = id => {
+let curStep = 0;
+const show = (id, step) => {
+  if(step !== undefined) curStep = step;
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   $(id).classList.add("active");
-  markStep(id);
-  document.body.classList.toggle("focus", id === "s-lecture");   // 강의 중엔 UI를 물린다
+  markStep(curStep);
+  document.body.classList.toggle("focus", id === "s-lecture");
   window.scrollTo(0,0);
 };
-markStep("s-intro");   // 첫 화면은 show()를 거치지 않으므로 여기서 표시
+markStep(0);
 
-// 연락처가 주소면 클릭 가능한 링크로, 아니면 그냥 글자로 표시한다
 if(/^https?:\/\//.test(CONFIG.contact)){
   const a = document.createElement("a");
-  a.href = CONFIG.contact;
-  a.target = "_blank";
-  a.rel = "noopener";
+  a.href = CONFIG.contact; a.target = "_blank"; a.rel = "noopener";
   a.textContent = "카카오톡 오픈채팅으로 문의하기";
-  a.style.color = "var(--accent)";
   $("contact").replaceChildren(a);
 } else {
   $("contact").textContent = CONFIG.contact;
 }
 $("submitGuide").textContent = CONFIG.submitGuide;
 
-/* file://로 열면 YouTube 임베드가 오류 153으로 거부된다.
-   웹 서버(로컬 포함)로 열어야 하므로 연구자에게 바로 알린다. */
 if(location.protocol === "file:" && !CONFIG.testMode){
   const w = document.createElement("div");
   w.className = "warn";
@@ -620,44 +614,32 @@ if(location.protocol === "file:" && !CONFIG.testMode){
 /* ═══════════════════════════════════════════════
    0. 환경 확인 + 동의
    ═══════════════════════════════════════════════ */
-
-/* 휴대폰·태블릿과 미지원 브라우저를 미리 걸러낸다.
-   참가자가 20분을 다 보내고 나서 실패하는 것이 가장 나쁘다. */
 (function(){
   const ua = navigator.userAgent;
   const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) ||
                    (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
   const hasCam = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   const hasRec = typeof MediaRecorder !== "undefined";
-  // UA 문자열 대신 실제 기능을 검사한다 (브라우저 종류를 추측하면 오탐이 난다)
   const hasWebm = hasRec && MediaRecorder.isTypeSupported("video/webm");
-
   let msg = "";
   if(isMobile){
     msg = `<b>노트북이나 데스크톱에서 참여해 주세요.</b><br>
-      이 연구는 상반신이 보이는 웹캠 영상이 필요해서 휴대폰·태블릿에서는 진행할 수 없습니다.
-      PC에서 같은 주소로 다시 접속해 주세요.`;
+      이 연구는 상반신이 보이는 웹캠 영상과 키보드 입력이 필요해서 휴대폰·태블릿에서는 진행할 수 없습니다.`;
   } else if(!hasCam || !hasRec){
     msg = `<b>이 브라우저에서는 진행할 수 없습니다.</b><br>
       카메라 녹화 기능이 지원되지 않습니다. Chrome으로 접속해 주세요.`;
   } else if(!hasWebm){
     msg = `<b>Chrome 사용을 권장합니다.</b><br>
-      이 브라우저는 녹화 형식이 달라 중간에 끊길 수 있습니다. 가능하면 Chrome으로 접속해 주세요.`;
+      이 브라우저는 녹화 형식이 달라 중간에 끊길 수 있습니다.`;
   }
-
   if(msg){
     const w = document.createElement("div");
-    w.className = "warn";
-    w.innerHTML = msg;
+    w.className = "warn"; w.innerHTML = msg;
     $("s-intro").prepend(w);
-    // 진행 자체가 불가능한 경우에만 막는다 (권장 사항은 통과시킨다)
-    if(isMobile || !hasCam || !hasRec){
-      window.__blocked = true;
-    }
+    if(isMobile || !hasCam || !hasRec) window.__blocked = true;
   }
 })();
 
-// 휴대폰 번호: 숫자만 남겨 01012345678 형태로 정규화한다
 function normPhone(v){ return (v || "").replace(/\D/g, ""); }
 function validPhone(v){ return /^01[0-9]{8,9}$/.test(normPhone(v)); }
 
@@ -674,10 +656,28 @@ checkConsent();
 $("agree").addEventListener("change", checkConsent);
 $("pid").addEventListener("input", checkConsent);
 
+/* 조건 배정 — 순서(프로브 먼저/계산 먼저) × 영상(어느 강의를 어느 조건에) = 4그룹.
+   전화번호 끝 네 자리로 정한다. 주소 끝에 ?g=0~3 을 붙이면 강제 지정(테스트용). */
+function assignPlan(pid){
+  const forced = new URLSearchParams(location.search).get("g");
+  const g = (forced !== null && /^[0-3]$/.test(forced)) ? +forced : (parseInt(pid.slice(-4), 10) % 4);
+  const probeFirst = (g & 1) === 0;
+  const probeVideo = (g & 2) ? "macintyre" : "walzer";
+  const mathVideo  = probeVideo === "walzer" ? "macintyre" : "walzer";
+  const a = { condition:"probe", video:probeVideo };
+  const b = { condition:"math",  video:mathVideo  };
+  S.group = g;
+  S.plan = probeFirst ? [a, b] : [b, a];
+  S.meta.group = g;
+  S.meta.plan = S.plan;
+  S.meta.groupForced = forced !== null;
+}
+
 $("btnConsent").addEventListener("click", async () => {
   S.pid = normPhone($("pid").value);
   S.meta.consentAt = new Date().toISOString();
-  show("s-camera");
+  assignPlan(S.pid);
+  show("s-camera", 1);
   await startCamera();
 });
 
@@ -700,7 +700,6 @@ async function startCamera(){
   const v = $("preview");
   v.srcObject = S.stream;
   await v.play().catch(()=>{});
-
   const t = S.stream.getVideoTracks()[0].getSettings();
   S.meta.capture = { width:t.width, height:t.height, frameRate:t.frameRate };
 
@@ -708,8 +707,7 @@ async function startCamera(){
   try {
     const vision = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14");
     const files = await vision.FilesetResolver.forVisionTasks(
-      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
-    );
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
     poseLandmarker = await vision.PoseLandmarker.createFromOptions(files, {
       baseOptions:{
         modelAssetPath:"https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
@@ -720,7 +718,6 @@ async function startCamera(){
     $("camStatus").textContent = "";
     checkLoop = setInterval(runCheck, 400);
   } catch(e){
-    // 모델 로드 실패 시 수동 확인으로 대체
     $("camStatus").textContent = "자동 확인을 사용할 수 없습니다. 위 안내에 따라 직접 확인 후 진행해 주세요.";
     ["sh","pos","lit"].forEach(k => $("t-"+k).textContent = "직접 확인해 주세요");
     $("btnCamNext").disabled = false;
@@ -729,17 +726,15 @@ async function startCamera(){
 }
 
 const canvas = document.createElement("canvas");
-const ctx = canvas.getContext("2d", { willReadFrequently:true });
-
+const cctx = canvas.getContext("2d", { willReadFrequently:true });
 function brightnessAt(video, nx, ny, r=0.12){
   const w = 80;
   canvas.width = w; canvas.height = w;
   const sw = video.videoWidth * r, sh = video.videoHeight * r;
   const sx = Math.max(0, nx*video.videoWidth - sw/2);
   const sy = Math.max(0, ny*video.videoHeight - sh/2);
-  try { ctx.drawImage(video, sx, sy, sw, sh, 0, 0, w, w); }
-  catch(e){ return null; }
-  const d = ctx.getImageData(0,0,w,w).data;
+  try { cctx.drawImage(video, sx, sy, sw, sh, 0, 0, w, w); } catch(e){ return null; }
+  const d = cctx.getImageData(0,0,w,w).data;
   let sum = 0;
   for(let i=0;i<d.length;i+=4) sum += 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
   return sum / (d.length/4);
@@ -749,14 +744,10 @@ let lastResult = null;
 function runCheck(){
   const v = $("preview");
   if(!poseLandmarker || v.readyState < 2) return;
-
   let res;
-  try { res = poseLandmarker.detectForVideo(v, performance.now()); }
-  catch(e){ return; }
-
+  try { res = poseLandmarker.detectForVideo(v, performance.now()); } catch(e){ return; }
   const lm = res.landmarks?.[0];
   let okSh=false, okPos=false, okLit=false;
-
   if(!lm){
     setCheck("sh", false, "사람이 인식되지 않습니다");
     setCheck("pos", false, "—");
@@ -767,22 +758,17 @@ function runCheck(){
     okSh = vis >= CONFIG.shoulderVisibility
         && L.x > 0.02 && L.x < 0.98 && R.x > 0.02 && R.x < 0.98;
     setCheck("sh", okSh, okSh ? "양쪽 어깨가 보입니다" : "어깨가 화면 밖입니다. 카메라에서 조금 떨어져 앉아 주세요");
-
     okPos = nose && nose.y <= CONFIG.facePositionMax;
     setCheck("pos", okPos, okPos ? "얼굴 위치가 적절합니다"
       : "얼굴이 너무 아래에 있습니다. 노트북 화면을 조금 세우거나 받침대로 카메라를 높여 주세요");
-
     const b = nose ? brightnessAt(v, nose.x, nose.y) : null;
     okLit = b !== null && b >= CONFIG.brightnessMin;
     setCheck("lit", okLit, okLit ? "밝기가 충분합니다"
       : "얼굴이 어둡습니다. 조명을 켜거나 창을 등지지 않게 앉아 주세요");
-
     lastResult = { shoulderVis:vis, noseY:nose?.y, brightness:b };
   }
-
   $("btnCamNext").disabled = !(okSh && okPos && okLit);
 }
-
 function setCheck(key, ok, msg){
   $("d-"+key).className = "dot " + (ok ? "ok" : "bad");
   $("t-"+key).textContent = msg;
@@ -792,24 +778,125 @@ $("btnCamNext").addEventListener("click", () => {
   if(checkLoop) clearInterval(checkLoop);
   S.meta.cameraCheck = lastResult;
   S.meta.autoCheck = S.meta.autoCheck !== false;
-  show("s-brief");
+  show("s-brief", 2);
 });
 
 /* ═══════════════════════════════════════════════
-   2~3. 강의 진행
+   2. 전체 진행
    ═══════════════════════════════════════════════ */
-$("btnDemo").addEventListener("click", () => startLecture(false));
-$("btnMain").addEventListener("click", () => startLecture(true));
+$("btnStart").addEventListener("click", () => runSession());
 
-/* 연습 건너뛰기 — 본 강의에서는 동작하지 않는다 */
-$("btnSkipDemo").addEventListener("click", () => {
-  if(S.isMain) return;
-  clearInterval(S.poll); S.poll = null;
-  clearTimeout(S.probeTimer);
-  $("probe").classList.remove("show");
-  try { S.player && S.player.stopVideo(); } catch(e){}
-  onEnded();
-});
+async function runSession(){
+  $("btnStart").disabled = true;
+  // 진행 화면을 띄운 뒤 녹화 → 점멸 마커
+  setStage("계산 문제", "곱셈 문제가 천천히 나타나면 답을 입력하고 Enter를 누르세요.", 2);
+  blankStage("잠시 후 시작합니다");
+  startRecording();
+  await flashMarker();
+
+  await runBaseline("baseline_pre", 0);
+
+  for(let i = 0; i < S.plan.length; i++){
+    const blk = S.plan[i];
+    const blockNo = i + 1;
+    const choice = await infoScreen(blockIntro(blk, blockNo), [
+      { label:"연습해 보기 (40초)", val:"practice" },
+      { label:"연습 없이 바로 시작", val:"go", ghost:true },
+    ], 2 + blockNo);
+    if(choice === "practice"){
+      await runVideo(blk.condition, CONFIG.practice[blk.condition], "practice", blockNo, null);
+      await infoScreen({
+        over:`강의 ${blockNo}`, title:"연습이 끝났습니다",
+        sub:"이제 본 강의를 시작합니다. 약 4~5분 걸립니다.",
+        body: blk.condition === "probe"
+          ? `<div class="card"><p style="font-size:14px">소리가 나면 <b>소리가 나기 직전</b> 주의가 어디에 있었는지 답해 주세요.</p></div>`
+          : `<div class="card"><p style="font-size:14px">강의 내용을 이해하는 것이 우선입니다. 문제를 기다리며 화면을 지켜볼 필요는 없고, 보이면 그때 풀면 됩니다.</p></div>`,
+      }, [{ label:"강의 시작", val:"go" }], 2 + blockNo);
+    }
+    const spec = CONFIG.videos[blk.video];
+    await runVideo(blk.condition, spec, "main", blockNo, blk.video);
+    await runQuiz(blk.video, blockNo);
+  }
+
+  await infoScreen({
+    over:"마지막", title:"계산 문제 10개만 더 풀면 끝납니다",
+    sub:"처음과 같은 방식입니다. 약 1분 걸립니다.",
+    body:"",
+  }, [{ label:"시작", val:"go" }], 2);
+  await runBaseline("baseline_post", 3);
+
+  S.meta.finishedAt = new Date().toISOString();
+  await stopRecording();
+  prepareDownloads();
+  show("s-done", 5);
+}
+
+function blockIntro(blk, blockNo){
+  const quizNote = `<div class="card"><h3>끝나면</h3><p style="font-size:14px">강의 내용에 대한 객관식 문제 2개를 풉니다. 강의 내용을 잘 따라가 주세요.</p></div>`;
+  if(blk.condition === "probe"){
+    return {
+      over:`강의 ${blockNo} / 2`, title:"딩 소리가 나면 답해 주세요",
+      sub:"5분짜리 강의를 봅니다. 이번 강의에서는 계산 문제가 나오지 않습니다.",
+      body:`
+        <div class="card"><h3>진행 방식</h3><ul>
+          <li>강의를 보는 동안 가끔 <b>"딩"</b> 소리가 납니다.</li>
+          <li>소리가 나면 화면 아래에 질문이 나타납니다.</li>
+          <li><b>소리가 나기 직전</b> 당신의 주의가 어디에 있었는지 답해 주세요.</li>
+          <li>키보드 <code>1</code> <code>2</code> <code>3</code> <code>4</code> 또는 마우스 클릭으로 답합니다. 응답 시간은 7초이며 강의는 멈추지 않습니다.</li>
+        </ul></div>
+        <div class="card"><h3>선택지 구분</h3><ul>
+          <li><b>1번</b> — 강의 내용을 따라가고 있었다</li>
+          <li><b>2번</b> — 화면은 보고 있었지만 머릿속으로는 다른 생각을 하고 있었다</li>
+          <li><b>3번</b> — 휴대폰을 보는 등 강의가 아닌 다른 것에 시선이나 손이 가 있었다</li>
+          <li><b>4번</b> — 위 중 어디에 해당하는지 판단하기 어렵다</li>
+        </ul></div>
+        <div class="card"><h3>솔직하게 답해 주세요</h3>
+          <p style="font-size:14px">강의 중 다른 생각이 드는 것은 지극히 정상입니다. 얼마나 집중했는지는 평가 대상이 아니며, 사례도 응답 내용과 무관하게 동일하게 지급됩니다.</p></div>
+        ${quizNote}`,
+    };
+  }
+  return {
+    over:`강의 ${blockNo} / 2`, title:"강의 중에 계산 문제가 나타납니다",
+    sub:"5분짜리 강의를 봅니다. 이번 강의에서는 소리가 나지 않습니다.",
+    body:`
+      <div class="card"><h3>진행 방식</h3><ul>
+        <li>강의를 보는 동안 가끔 화면 가운데에 <b>곱셈 문제가 소리 없이 천천히</b> 나타납니다.</li>
+        <li>알아차리면 바로 숫자 키로 답을 입력하고 <code>Enter</code>를 누르세요.</li>
+        <li>10초가 지나면 문제가 사라집니다. 강의는 멈추지 않습니다.</li>
+      </ul></div>
+      <div class="card"><h3>강의가 우선입니다</h3>
+        <p style="font-size:14px">문제를 기다리며 화면을 지켜볼 필요는 없습니다. 평소처럼 강의를 보다가 문제가 보이면 그때 풀면 됩니다.</p></div>
+      ${quizNote}`,
+  };
+}
+
+/* ── 공용 안내 화면: 버튼 중 하나를 누를 때까지 기다린다 ── */
+function infoScreen(c, buttons, step){
+  $("infoOver").textContent = c.over || "";
+  $("infoTitle").textContent = c.title || "";
+  $("infoSub").textContent = c.sub || "";
+  $("infoBody").innerHTML = c.body || "";
+  show("s-info", step);
+  return new Promise(res => {
+    $("infoBtns").innerHTML = buttons.map((b,i) =>
+      `<button data-i="${i}" class="${b.ghost ? "ghost" : ""}">${b.label}</button>`).join("");
+    $("infoBtns").querySelectorAll("button").forEach(el =>
+      el.addEventListener("click", () => res(buttons[+el.dataset.i].val), { once:true }));
+  });
+}
+
+/* ── 진행 화면 ── */
+function setStage(title, sub, step){
+  $("lecTitle").textContent = title;
+  $("lecSub").textContent = sub;
+  $("btnSkip").style.display = "none";
+  $("lecStatus").textContent = "";
+  show("s-lecture", step);
+}
+function blankStage(text){
+  if(S.player){ try { S.player.destroy(); } catch(e){} S.player = null; }
+  $("playerHost").innerHTML = `<div class="blankStage">${text || ""}</div>`;
+}
 
 function ding(){
   if(!S.audioCtx) S.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -823,15 +910,20 @@ function ding(){
   o.start(); o.stop(ac.currentTime + 0.4);
 }
 
+/* 이벤트 시각: 개수 고정, 간격 무작위, 끝부분 여유 확보 */
 function buildSchedule(duration){
-  const list = [];
-  let t = CONFIG.firstProbeSec;
-  const limit = duration - CONFIG.tailPaddingSec;
-  while(t < limit){
-    list.push(Math.round(t*100)/100);
-    t += CONFIG.probeMinSec + Math.random()*(CONFIG.probeMaxSec - CONFIG.probeMinSec);
+  const T = CONFIG.testMode ? CONFIG.test : null;
+  const n = T ? T.events : CONFIG.eventsPerVideo;
+  const f0 = T ? T.firstSec : CONFIG.firstEventMinSec, f1 = T ? T.firstSec : CONFIG.firstEventMaxSec;
+  const g0 = T ? T.gapMin : CONFIG.gapMinSec, g1 = T ? T.gapMax : CONFIG.gapMaxSec;
+  const limit = duration - (T ? 5 : CONFIG.tailPaddingSec);
+  for(let tries = 0; tries < 500; tries++){
+    const list = [rand(f0, f1)];
+    while(list.length < n) list.push(list[list.length-1] + rand(g0, g1));
+    if(list[n-1] <= limit) return list.map(t => Math.round(t*100)/100);
   }
-  return list;
+  // 구간이 너무 짧으면 균등 배치
+  return Array.from({length:n}, (_, i) => Math.round((f0 + i*(limit - f0)/Math.max(1,n-1))*100)/100);
 }
 
 /* ── YouTube IFrame API ── */
@@ -851,7 +943,6 @@ function loadYT(){
 function makePlayer(spec){
   return new Promise((res, rej) => {
     const to = setTimeout(() => rej(new Error("timeout")), 15000);
-    // destroy()는 iframe을 DOM에서 제거하므로, 안정적인 host 안에 매번 새 div를 만든다
     if(S.player){ try { S.player.destroy(); } catch(e){} S.player = null; }
     $("playerHost").innerHTML = '<div id="player"></div>';
     S.player = new YT.Player("player", {
@@ -860,7 +951,6 @@ function makePlayer(spec){
         controls:0, disablekb:1, modestbranding:1, rel:0,
         fs:0, iv_load_policy:3, playsinline:1,
         start: Math.floor(spec.startSec || 0),
-        // http(s)로 서빙될 때만 origin을 넘긴다 (file://이면 origin이 없어 오류 153)
         ...(location.protocol.startsWith("http") ? { origin: location.origin } : {}),
       },
       events: {
@@ -878,142 +968,114 @@ function makePlayer(spec){
   });
 }
 
-async function startLecture(isMain){
-  S.isMain = isMain;
-  S.probeIdx = 0;
-  if(isMain) S.probes = [];
+/* ── 영상 1편 진행 (연습 또는 본 강의). 끝나면 resolve ── */
+function runVideo(condition, spec, phase, blockNo, videoKey){
+  return new Promise(async (resolve) => {
+    const isPractice = phase === "practice";
+    const label = isPractice ? `연습 — ${condition === "probe" ? "딩 소리에 답하기" : "계산 문제 풀기"}` : `강의 ${blockNo}`;
+    const sub = condition === "probe"
+      ? "소리가 나면 화면 아래 질문에 답해 주세요."
+      : "곱셈 문제가 보이면 답을 입력하고 Enter를 누르세요.";
+    setStage(label, sub, 2 + blockNo);
+    S.ctx = { block:blockNo, phase, condition, video: videoKey || ("practice_" + condition) };
 
-  $("lecTitle").textContent = isMain ? "강의" : "연습";
-  $("lecSub").textContent = isMain
-    ? "편하게 시청하시고, 소리가 나면 답해 주세요."
-    : "연습입니다. 소리가 나면 답해 보세요. 한 번 해보고 바로 넘어가셔도 됩니다.";
-  $("btnSkipDemo").style.display = isMain ? "none" : "inline-flex";
-  show("s-lecture");
-
-  if(CONFIG.testMode) return startTestMode(isMain);
-
-  const spec = isMain ? CONFIG.main : CONFIG.demo;
-  if(!spec.id){
-    $("lecStatus").innerHTML =
-      `<span style="color:var(--err)">영상 ID가 설정되지 않았습니다.</span><br>
-       CONFIG의 <code>${isMain?"main":"demo"}.id</code>에 YouTube 영상 ID를 입력해 주세요.`;
-    return;
-  }
-
-  $("lecStatus").textContent = "영상을 불러오는 중…";
-  try {
-    await loadYT();
-    await makePlayer(spec);
-  } catch(e){
-    $("lecStatus").innerHTML =
-      `<span style="color:var(--err)">영상을 불러오지 못했습니다. (${e.message})</span><br>
-       영상 ID가 맞는지, 해당 영상이 퍼가기를 허용하는지 확인해 주세요.`;
-    return;
-  }
-
-  S.segStart = spec.startSec || 0;
-  S.segEnd   = spec.endSec || (S.segStart + S.player.getDuration());
-  S.schedule = buildSchedule(S.segEnd - S.segStart);
-
-  if(isMain){
-    startRecording();
-    await flashMarker();
-  }
-
-  try { S.player.playVideo(); } catch(e){}
-  startPolling(isMain);
-}
-
-/* 재생 위치 폴링 (video 태그의 timeupdate 대체) */
-function startPolling(isMain){
-  clearInterval(S.poll);
-  let started = false;
-  S.poll = setInterval(() => {
-    if(!S.player || !S.player.getCurrentTime) return;
-    const state = S.player.getPlayerState();
-
-    // 자동재생 차단 감지
-    if(!started && state === YT.PlayerState.PLAYING){
-      started = true;
-      $("lecStatus").textContent = "";
-    }
-    if(!started && (state === YT.PlayerState.UNSTARTED || state === YT.PlayerState.CUED)
-       && !$("btnPlay")){
-      $("lecStatus").innerHTML =
-        `<button id="btnPlay" style="padding:8px 16px;font-size:14px">재생 시작</button>
-         <span style="margin-left:10px">클릭하면 시작됩니다.</span>`;
-      $("btnPlay").addEventListener("click", () => S.player.playVideo(), { once:true });
-    }
-
-    const t = S.player.getCurrentTime() - S.segStart;   // 구간 내 경과 시간
-    S.lastTime = t;
-
-    if(S.probeIdx < S.schedule.length && t >= S.schedule[S.probeIdx]){
-      const at = S.schedule[S.probeIdx];
-      S.probeIdx++;
-      openProbe(at);
-    }
-
-    if(isMain){
-      const left = Math.max(0, (S.segEnd - S.segStart) - t);
-      $("lecStatus").textContent = "남은 시간 약 " + Math.ceil(left/60) + "분";
-    }
-
-    // 지정 구간 끝 또는 영상 종료
-    if(t >= (S.segEnd - S.segStart) || state === YT.PlayerState.ENDED){
+    let finished = false;
+    const finish = async () => {
+      if(finished) return; finished = true;
       clearInterval(S.poll); S.poll = null;
-      try { S.player.pauseVideo(); } catch(e){}
-      onEnded();
+      try { S.player && S.player.pauseVideo(); } catch(e){}
+      // 진행 중인 이벤트가 있으면 마저 끝낸다
+      if(S.math) await S.math.done;
+      if($("probe").classList.contains("show")) answerProbe("timeout");
+      $("btnSkip").style.display = "none";
+      resolve();
+    };
+
+    if(isPractice){
+      $("btnSkip").style.display = "inline-flex";
+      $("btnSkip").onclick = () => finish();
     }
-  }, 250);
+
+    let dur, schedule;
+    const T = CONFIG.testMode ? CONFIG.test : null;
+    if(T){
+      dur = isPractice ? T.practiceSec : T.videoSec;
+      $("playerHost").innerHTML = `<div class="blankStage">테스트 모드 — 영상 대신 ${dur}초 타이머</div>`;
+    } else {
+      $("lecStatus").textContent = "영상을 불러오는 중…";
+      try { await loadYT(); await makePlayer(spec); }
+      catch(e){
+        $("lecStatus").innerHTML = `<span style="color:var(--err)">영상을 불러오지 못했습니다. (${e.message})</span>
+          <button id="btnRetry" class="small" style="margin-left:10px">다시 시도</button>`;
+        $("btnRetry").onclick = async () => { finished = true; resolve(await runVideo(condition, spec, phase, blockNo, videoKey)); };
+        return;
+      }
+      dur = (spec.endSec || 0) - (spec.startSec || 0);
+      if(dur <= 0) dur = S.player.getDuration() - (spec.startSec || 0);
+    }
+    schedule = isPractice ? [T ? 5 : CONFIG.practiceEventSec] : buildSchedule(dur);
+    if(!isPractice) S.meta.schedules[`block${blockNo}`] = { condition, video:videoKey, start:spec.startSec, end:spec.endSec, schedule };
+
+    let idx = 0, started = !!T;
+    const t0 = performance.now();
+    if(!T){ try { S.player.playVideo(); } catch(e){} }
+    $("lecStatus").textContent = "";
+
+    S.poll = setInterval(() => {
+      let t;
+      if(T){
+        t = (performance.now() - t0) / 1000;
+      } else {
+        if(!S.player || !S.player.getCurrentTime) return;
+        const st = S.player.getPlayerState();
+        if(!started && st === YT.PlayerState.PLAYING){ started = true; $("lecStatus").textContent = ""; }
+        if(!started && (st === YT.PlayerState.UNSTARTED || st === YT.PlayerState.CUED) && !$("btnPlay")){
+          $("lecStatus").innerHTML = `<button id="btnPlay" class="small">재생 시작</button>
+            <span style="margin-left:10px">클릭하면 시작됩니다.</span>`;
+          $("btnPlay").addEventListener("click", () => S.player.playVideo(), { once:true });
+        }
+        if(st === YT.PlayerState.ENDED) return finish();
+        t = S.player.getCurrentTime() - (spec.startSec || 0);
+      }
+
+      if(idx < schedule.length && t >= schedule[idx]){
+        const at = schedule[idx]; idx++;
+        if(condition === "probe") openProbe(at, idx);
+        else openMath(at, idx);
+      }
+      if(!isPractice && started){
+        const left = Math.max(0, dur - t);
+        $("lecStatus").textContent = "남은 시간 약 " + Math.max(1, Math.ceil(left/60)) + "분";
+      }
+      if(t >= dur) finish();
+    }, 200);
+  });
 }
 
-/* ── 테스트 모드 (영상 없이 흐름만 확인) ── */
-async function startTestMode(isMain){
-  const dur = isMain ? CONFIG.testMainSec : CONFIG.testDemoSec;
-  S.segStart = 0; S.segEnd = dur;
-  S.schedule = buildSchedule(dur);
-
-  $("playerHost").innerHTML =
-    `<div style="display:flex;align-items:center;justify-content:center;
-                 height:100%;color:#555;font-size:14px">테스트 모드</div>`;
-
-  if(isMain){
-    startRecording();
-    await flashMarker();
+/* ── 기준 RT: 영상 없이 계산 문제만 ── */
+async function runBaseline(tag, blockNo){
+  const n = CONFIG.testMode ? CONFIG.test.baseline : CONFIG.baselineCount;
+  setStage("계산 문제", `곱셈 문제가 천천히 나타나면 답을 입력하고 Enter를 누르세요. (총 ${n}문제)`, 2);
+  blankStage("");
+  S.ctx = { block:blockNo, phase:tag, condition:"math", video:"" };
+  for(let i = 1; i <= n; i++){
+    $("lecStatus").textContent = `${i - 1} / ${n}`;
+    await sleep(rand(CONFIG.baselineGapMinSec, CONFIG.baselineGapMaxSec) * 1000);
+    openMath(null, i);
+    await S.math.done;
   }
-
-  const t0 = performance.now();
-  clearInterval(S.poll);
-  S.poll = setInterval(() => {
-    const t = (performance.now() - t0) / 1000;
-    S.lastTime = t;
-
-    if(S.probeIdx < S.schedule.length && t >= S.schedule[S.probeIdx]){
-      const at = S.schedule[S.probeIdx];
-      S.probeIdx++;
-      openProbe(at);
-    }
-    $("lecStatus").textContent =
-      `테스트 모드 · ${Math.floor(t)}초 / ${dur}초 · 프로브 ${S.probeIdx}/${S.schedule.length}`;
-
-    if(t >= dur){
-      clearInterval(S.poll); S.poll = null;
-      onEnded();
-    }
-  }, 250);
+  $("lecStatus").textContent = `${n} / ${n}`;
+  await sleep(600);
 }
 
-/* 녹화 영상 안에 시각 기준점을 남긴다.
-   MediaRecorder가 첫 프레임을 쓰기 전에 번쩍이면 영상에 안 잡히므로
-   녹화 시작 후 잠시 기다렸다가 점멸시킨다. */
+/* 녹화 영상 안에 시각 기준점을 남긴다 (녹화 시작 1.2초 뒤 흰 점멸 + 딩) */
 function flashMarker(){
   return new Promise(res => {
     const f = $("flash");
     setTimeout(() => {
       S.meta.flashAtMs = Math.round(performance.now() - S.recordStartPerf);
       f.style.transition = "none"; f.style.opacity = "1";
-      ding();                                  // 소리도 같이 남겨 오디오로도 정렬 가능
+      ding();
       setTimeout(() => {
         f.style.transition = "opacity .3s"; f.style.opacity = "0";
         setTimeout(res, 350);
@@ -1022,38 +1084,33 @@ function flashMarker(){
   });
 }
 
-/* ── 프로브 ── */
-const OPT_ON    = { key:"on_task",         label:"강의 내용에 있었다" };
-const OPT_MW    = { key:"off_task_mw",     label:"화면은 보고 있었지만 다른 생각을 하고 있었다" };
-const OPT_OVERT = { key:"off_task_overt",  label:"다른 것을 보거나 하고 있었다" };
-const OPT_SKIP  = { key:"skip",            label:"판단하기 어렵다" };
+/* ═══════════════════════════════════════════════
+   이벤트 1 — 프로브 (원래 방식)
+   ═══════════════════════════════════════════════ */
+const PROBE_OPTS = [
+  { key:"on_task",        label:"강의 내용에 있었다" },
+  { key:"off_task_mw",    label:"화면은 보고 있었지만 다른 생각을 하고 있었다" },
+  { key:"off_task_overt", label:"다른 것을 보거나 하고 있었다" },
+  { key:"skip",           label:"판단하기 어렵다" },
+];
+$("probeOpts").innerHTML = PROBE_OPTS.map((o,i) =>
+  `<div class="opt" data-k="${o.key}"><b>${i+1}</b>${o.label}</div>`).join("");
+$("probeOpts").querySelectorAll(".opt").forEach(el =>
+  el.addEventListener("click", () => answerProbe(el.dataset.k)));
 
-// 2·3번은 "화면 안 / 화면 밖"의 논리적 순서이므로 고정 배치
-const PROBE_OPTS = [OPT_ON, OPT_MW, OPT_OVERT, OPT_SKIP];
-
-function renderOpts(){
-  $("probeOpts").innerHTML = PROBE_OPTS.map((o,i) =>
-    `<div class="opt" data-k="${o.key}"><b>${i+1}</b>${o.label}</div>`).join("");
-  $("probeOpts").querySelectorAll(".opt").forEach(el =>
-    el.addEventListener("click", () => answerProbe(el.dataset.k)));
-  return PROBE_OPTS;
-}
-
-let currentOpts = [];
-function openProbe(lectureTime){
+function openProbe(lectureTime, eventIndex){
   ding();
-  currentOpts = renderOpts();
   S.probeOpenAt = performance.now();
   S.pendingLectureTime = lectureTime;
+  S.pendingEventIndex = eventIndex;
+  S.pendingCtx = { ...S.ctx };
   $("probe").classList.add("show");
-
   const bar = $("timerBar");
   bar.style.transition = "none"; bar.style.width = "100%";
-  requestAnimationFrame(() => {
+  requestAnimationFrame(() => requestAnimationFrame(() => {
     bar.style.transition = `width ${CONFIG.probeWindowSec}s linear`;
     bar.style.width = "0%";
-  });
-
+  }));
   clearTimeout(S.probeTimer);
   S.probeTimer = setTimeout(() => answerProbe("timeout"), CONFIG.probeWindowSec*1000);
 }
@@ -1062,42 +1119,145 @@ function answerProbe(key){
   if(!$("probe").classList.contains("show")) return;
   clearTimeout(S.probeTimer);
   $("probe").classList.remove("show");
-
   const now = performance.now();
-  const rec = {
-    participant_id: S.pid,
-    phase: S.isMain ? "main" : "demo",
-    probe_index: S.probes.length + 1,
+  pushEvent(S.pendingCtx, {
+    event_index: S.pendingEventIndex,
     lecture_time: S.pendingLectureTime.toFixed(2),
-    recording_offset_ms: S.isMain ? Math.round(now - S.recordStartPerf) : "",
-    epoch_ms: Date.now(),
+    recording_offset_ms: Math.round(S.probeOpenAt - S.recordStartPerf),
+    epoch_ms: Date.now() - Math.round(now - S.probeOpenAt),
     response: key,
     response_latency_ms: key === "timeout" ? "" : Math.round(now - S.probeOpenAt),
-    option_order: S.optionOrder,
-  };
-  if(S.isMain) S.probes.push(rec);
+  });
 }
 
+/* ═══════════════════════════════════════════════
+   이벤트 2 — 계산 문제 (무음, 서서히 등장)
+   RT = 등장 시작부터 첫 숫자 입력까지
+   ═══════════════════════════════════════════════ */
+function newPair(){
+  let a, b, key;
+  do {
+    a = Math.floor(rand(CONFIG.mathMin, CONFIG.mathMax + 1));
+    b = Math.floor(rand(CONFIG.mathMin, CONFIG.mathMax + 1));
+    key = Math.min(a,b) + "x" + Math.max(a,b);
+  } while(key === S.lastPair);
+  S.lastPair = key;
+  return [a, b];
+}
+
+function renderMath(){
+  const m = S.math;
+  $("mathBox").innerHTML = `${m.a} × ${m.b} = <span class="ans">${m.typed || "&nbsp;"}</span>
+    <span class="hint">숫자 입력 후 Enter</span>`;
+}
+
+function openMath(lectureTime, eventIndex){
+  const [a, b] = newPair();
+  let doneRes;
+  const box = $("mathBox");
+  S.math = {
+    a, b, typed:"", firstKey:null, lectureTime, eventIndex,
+    ctx: { ...S.ctx },
+    done: new Promise(r => doneRes = r),
+  };
+  S.math.resolve = doneRes;
+  renderMath();
+  box.style.transition = "none"; box.style.opacity = "0";
+  void box.offsetWidth;                                  // 투명도 0을 먼저 적용
+  S.math.onset = performance.now();
+  S.math.onsetEpoch = Date.now();
+  box.style.transition = `opacity ${CONFIG.mathFadeSec}s linear`;
+  box.style.opacity = "1";
+  S.math.timer = setTimeout(() => closeMath("timeout"), CONFIG.mathTimeoutSec * 1000);
+}
+
+function closeMath(kind){
+  const m = S.math;
+  if(!m) return;
+  clearTimeout(m.timer);
+  S.math = null;
+  const now = performance.now();
+  const box = $("mathBox");
+  box.style.transition = "opacity .2s"; box.style.opacity = "0";
+
+  const typedNum = m.typed === "" ? null : parseInt(m.typed, 10);
+  pushEvent(m.ctx, {
+    event_index: m.eventIndex,
+    lecture_time: m.lectureTime === null ? "" : m.lectureTime.toFixed(2),
+    recording_offset_ms: Math.round(m.onset - S.recordStartPerf),
+    epoch_ms: m.onsetEpoch,
+    response: kind,                                   // answered | timeout
+    response_latency_ms: m.firstKey === null ? "" : Math.round(m.firstKey - m.onset),
+    math_a: m.a, math_b: m.b,
+    math_typed: m.typed,
+    math_correct: kind === "answered" ? (typedNum === m.a * m.b ? 1 : 0) : "",
+    rt_first_key_ms: m.firstKey === null ? "" : Math.round(m.firstKey - m.onset),
+    rt_submit_ms: kind === "answered" ? Math.round(now - m.onset) : "",
+  });
+  setTimeout(() => m.resolve(), 250);
+}
+
+/* 키 입력 — 프로브(1~4)와 계산(숫자·Backspace·Enter) */
 document.addEventListener("keydown", e => {
-  if(!$("probe").classList.contains("show")) return;
-  const n = parseInt(e.key, 10);
-  if(n >= 1 && n <= 4) answerProbe(currentOpts[n-1].key);
+  if($("probe").classList.contains("show")){
+    const n = parseInt(e.key, 10);
+    if(n >= 1 && n <= 4){ e.preventDefault(); answerProbe(PROBE_OPTS[n-1].key); }
+    return;
+  }
+  const m = S.math;
+  if(!m) return;
+  if(/^[0-9]$/.test(e.key)){
+    e.preventDefault();
+    if(m.firstKey === null) m.firstKey = performance.now();
+    if(m.typed.length < 2){ m.typed += e.key; renderMath(); }
+  } else if(e.key === "Backspace"){
+    e.preventDefault();
+    m.typed = m.typed.slice(0, -1); renderMath();
+  } else if(e.key === "Enter"){
+    e.preventDefault();
+    if(m.typed !== "") closeMath("answered");
+  } else if(e.key === " "){
+    e.preventDefault();
+  }
 });
 
-/* ── 강의 종료 ── */
-function onEnded(){
-  clearInterval(S.poll); S.poll = null;
-  clearTimeout(S.probeTimer);
-  $("probe").classList.remove("show");
-  $("lecStatus").textContent = "";
+/* ── CSV 행 ── */
+const COLS = ["participant_id","group","block","phase","condition","video","event_index",
+  "lecture_time","recording_offset_ms","epoch_ms","response","response_latency_ms",
+  "math_a","math_b","math_typed","math_correct","rt_first_key_ms","rt_submit_ms"];
+function pushEvent(ctx, fields){
+  const row = { participant_id:S.pid, group:S.group, block:ctx.block, phase:ctx.phase,
+                condition:ctx.condition, video:ctx.video, ...fields };
+  S.events.push(row);
+}
 
-  if(!S.isMain){
-    show("s-ready");
-  } else {
-    stopRecording();
-    buildQuiz();
-    show("s-quiz");
-  }
+/* ═══════════════════════════════════════════════
+   퀴즈 — 강의마다 2문항
+   ═══════════════════════════════════════════════ */
+function runQuiz(videoKey, blockNo){
+  const items = CONFIG.videos[videoKey].quiz;
+  $("quizOver").textContent = `강의 ${blockNo} — 내용 확인`;
+  $("quizBody").innerHTML = items.map((q,i) => `
+    <div class="quizQ">
+      <p>${i+1}. ${q.q}</p>
+      ${q.opts.map((o,j) =>
+        `<label class="quizOpt"><input type="radio" name="q${i}" value="${j}">${o}</label>`).join("")}
+    </div>`).join("");
+  $("btnQuiz").disabled = false;
+  show("s-quiz", 2 + blockNo);
+  return new Promise(res => {
+    $("btnQuiz").onclick = () => {
+      const answers = items.map((q,i) => {
+        const el = document.querySelector(`input[name=q${i}]:checked`);
+        const pick = el ? parseInt(el.value,10) : -1;
+        return { index:i+1, segment:q.seg, picked:pick, correct: pick === q.answer ? 1 : 0 };
+      });
+      S.meta.quiz[`block${blockNo}`] = { video:videoKey, answers,
+        score: answers.filter(a => a.correct).length + "/" + answers.length };
+      $("btnQuiz").onclick = null;
+      res();
+    };
+  });
 }
 
 /* ═══════════════════════════════════════════════
@@ -1107,29 +1267,20 @@ function pickMime(){
   const c = ["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];
   return c.find(m => MediaRecorder.isTypeSupported(m)) || "";
 }
-
 function startRecording(){
   const mime = pickMime();
   S.chunks = [];
-  S.recorder = new MediaRecorder(S.stream, {
-    mimeType: mime || undefined,
-    videoBitsPerSecond: 2_500_000,
-  });
+  S.recorder = new MediaRecorder(S.stream, { mimeType: mime || undefined, videoBitsPerSecond: 2_500_000 });
   S.recorder.ondataavailable = e => { if(e.data.size) S.chunks.push(e.data); };
   S.recordStartPerf = performance.now();
   S.recordStartEpoch = Date.now();
-  S.recorder.start(5000);   // 5초 단위 청크
+  S.recorder.start(5000);
   S.meta.mimeType = mime;
   S.meta.recordStartEpoch = S.recordStartEpoch;
   $("recBadge").style.visibility = "visible";
   window.addEventListener("beforeunload", guard);
 }
-
 function guard(e){ e.preventDefault(); e.returnValue = ""; }
-
-/* 여러 번 호출돼도 안전하게: 첫 호출의 Promise를 재사용한다.
-   (onEnded와 퀴즈 제출에서 모두 호출되므로, 두 번째 호출이
-    마지막 청크가 도착하기 전에 먼저 끝나버리면 영상이 잘린다) */
 function stopRecording(){
   if(S.stopPromise) return S.stopPromise;
   S.stopPromise = new Promise(res => {
@@ -1147,56 +1298,38 @@ function stopRecording(){
 }
 
 /* ═══════════════════════════════════════════════
-   퀴즈
-   ═══════════════════════════════════════════════ */
-function buildQuiz(){
-  $("quizBody").innerHTML = CONFIG.quiz.map((q,i) => `
-    <div class="quizQ">
-      <p>${i+1}. ${q.q}</p>
-      ${q.opts.map((o,j) =>
-        `<label class="quizOpt"><input type="radio" name="q${i}" value="${j}">${o}</label>`).join("")}
-    </div>`).join("");
-}
-
-$("btnQuiz").addEventListener("click", async () => {
-  $("btnQuiz").disabled = true;
-  $("btnQuiz").textContent = "파일 준비 중…";
-
-  const answers = CONFIG.quiz.map((q,i) => {
-    const el = document.querySelector(`input[name=q${i}]:checked`);
-    const pick = el ? parseInt(el.value,10) : -1;
-    return { index:i+1, segment:q.seg, picked:pick, correct: pick === q.answer ? 1 : 0 };
-  });
-  S.meta.quiz = answers;
-  S.meta.quizScore = answers.filter(a => a.correct).length + "/" + answers.length;
-  S.meta.finishedAt = new Date().toISOString();
-
-  await stopRecording();
-  prepareDownloads();
-  show("s-done");
-});
-
-/* ═══════════════════════════════════════════════
    파일 생성
    ═══════════════════════════════════════════════ */
 function toCSV(){
-  const cols = ["participant_id","phase","probe_index","lecture_time",
-    "recording_offset_ms","epoch_ms","response","response_latency_ms","option_order"];
-  const head = cols.join(",");
-  const rows = S.probes.map(r => cols.map(c => r[c]).join(","));
-  return "\uFEFF" + [head, ...rows].join("\n") + "\n";
+  const esc = v => (v === undefined || v === null) ? "" : String(v);
+  const rows = S.events.map(r => COLS.map(c => esc(r[c])).join(","));
+  return "\uFEFF" + [COLS.join(","), ...rows].join("\n") + "\n";
+}
+
+function summarize(){
+  const by = {};
+  for(const r of S.events){
+    const k = `${r.phase}:${r.condition}`;
+    by[k] = by[k] || { n:0, answered:0, timeout:0 };
+    by[k].n++;
+    if(r.response === "timeout") by[k].timeout++; else by[k].answered++;
+  }
+  return by;
 }
 
 function prepareDownloads(){
-  // 실제 녹화 형식에 맞는 확장자를 쓴다 (브라우저에 따라 mp4일 수 있음)
   const realMime = (S.recorder && S.recorder.mimeType) || S.meta.mimeType || "video/webm";
   const ext = realMime.includes("mp4") ? "mp4" : "webm";
   S.meta.actualMimeType = realMime;
   const blobVideo = new Blob(S.chunks, { type: realMime });
   S.meta.videoBytes = blobVideo.size;
-  S.meta.probeCount = S.probes.length;
-  S.meta.schedule = S.schedule;
-  S.meta.segment = { start:S.segStart, end:S.segEnd };
+  S.meta.eventCount = S.events.length;
+  S.meta.eventSummary = summarize();
+  S.meta.config = {
+    mathFadeSec:CONFIG.mathFadeSec, mathTimeoutSec:CONFIG.mathTimeoutSec,
+    probeWindowSec:CONFIG.probeWindowSec, eventsPerVideo:CONFIG.eventsPerVideo,
+    baselineCount:CONFIG.baselineCount, testMode:CONFIG.testMode,
+  };
   S.meta.userAgent = navigator.userAgent;
   S.meta.screen = { w:screen.width, h:screen.height };
 
@@ -1204,17 +1337,16 @@ function prepareDownloads(){
     { name:`${S.pid}_video.${ext}`, blob:blobVideo,
       desc:"웹캠 영상 (" + (blobVideo.size/1048576).toFixed(0) + " MB)" },
     { name:`${S.pid}_data.csv`, blob:new Blob([toCSV()],{type:"text/csv;charset=utf-8"}),
-      desc:"응답 기록 (" + S.probes.length + "개)" },
+      desc:"응답 기록 (" + S.events.length + "개)" },
     { name:`${S.pid}_meta.json`, blob:new Blob([JSON.stringify(S.meta,null,2)],{type:"application/json"}),
       desc:"세션 정보" },
   ];
 
   $("fileList").innerHTML = files.map((f,i) =>
-    `<div class="fileRow" id="row${i}"><span><b>${f.name}</b><br><span style="color:var(--muted);font-size:13px">${f.desc}</span></span>
+    `<div class="fileRow" id="row${i}"><span><b>${f.name}</b><br><span style="color:var(--dim);font-size:13px">${f.desc}</span></span>
      <button data-i="${i}">저장</button></div>`).join("");
 
   const saved = new Array(files.length).fill(false);
-
   function refresh(){
     const n = saved.filter(Boolean).length;
     const all = n === files.length;
@@ -1224,7 +1356,6 @@ function prepareDownloads(){
          나머지 ${files.length - n}개도 꼭 저장해 주세요.</div>`;
     $("uploadBox").style.display = (all && CONFIG.uploadUrl) ? "block" : "none";
   }
-
   $("fileList").querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
       const i = +btn.dataset.i, f = files[i];
@@ -1244,14 +1375,15 @@ function prepareDownloads(){
   if(CONFIG.uploadUrl){
     $("uploadBox").innerHTML =
       `<a href="${CONFIG.uploadUrl}" target="_blank" rel="noopener"
-         style="display:inline-block;background:var(--accent);color:#fff;text-decoration:none;
-                padding:12px 22px;border-radius:8px;font-weight:600">파일 제출하러 가기</a>`;
+         style="display:inline-block;background:var(--accent);color:var(--bg);text-decoration:none;
+                padding:12px 22px;border-radius:999px;font-weight:600">파일 제출하러 가기</a>`;
   }
-
-  // 자동 저장 시도 (브라우저가 다중 다운로드를 막으면 위 버튼으로 직접 저장)
   setTimeout(() => $("fileList").querySelectorAll("button").forEach((b,i) =>
     setTimeout(() => b.click(), i*900)), 500);
 }
+
+// 테스트 스크립트용 노출
+window.__S = S; window.__CONFIG = CONFIG;
 </script>
 </body>
 </html>
