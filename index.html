@@ -473,11 +473,11 @@
 <section id="s-done" class="screen">
   <div class="overline">06 — 제출</div>
   <h1>참여해 주셔서 감사합니다</h1>
-  <p class="sub">아래 파일 여섯 개(파트마다 영상·응답 기록·세션 정보 3개씩)를 모두 저장해 연구팀에 전달해 주세요.</p>
+  <p class="sub">아래 압축 파일 하나(파트마다 영상·응답 기록·세션 정보 3개씩, 모두 6개 포함)를 저장해 연구팀에 전달해 주세요.</p>
 
   <div class="warn">
-    <b>세 파일이 모두 필요합니다.</b> 하나라도 빠지면 데이터를 사용할 수 없습니다.
-    영상 파일은 크기가 커서 저장에 시간이 걸릴 수 있습니다.
+    <b>압축 파일(.zip)은 풀지 말고 그대로 제출해 주세요.</b> 안에 든 6개가 모두 있어야 데이터를 사용할 수 있습니다.
+    영상이 커서 묶고 저장하는 데 시간이 걸릴 수 있습니다.
   </div>
 
   <div class="files" id="fileList"></div>
@@ -553,8 +553,10 @@ const CONFIG = {
 
   // 본 강의 이벤트 (프로브 또는 계산 문제)
   eventsPerVideo: 6,          // 영상당 고정 개수 (두 조건을 같게)
-  firstEventMinSec: 20, firstEventMaxSec: 30,
-  gapMinSec: 25, gapMaxSec: 45,
+  // 이벤트 시각: 참가자마다 [첫 이벤트 최소 시각, 끝 − tailPaddingSec] 구간에서 무작위로 뽑되 최소 간격을 지킨다.
+  // (이전: 첫 20–30초 + 간격 25–45초 → 사람마다 같은 순번이 거의 같은 장면에 놓였음. 10초 내 겹침 약 60% → 약 30%)
+  firstEventMinSec: 20,
+  minGapSec: 20,              // 응답 시간(최대 10초) + 다음 이벤트 직전 특징 창(10초)
   tailPaddingSec: 15,         // 구간 끝 이 시간 안에는 이벤트 없음 (계산 문제 제한시간 이상)
 
   // 프로브 (원래 방식)
@@ -584,8 +586,8 @@ const CONFIG = {
 
   // 연락처 / 제출
   contact: "https://open.kakao.com/o/sqGvsEOi",
-  submitGuide: "위 파일 6개를 모두 저장한 뒤, 아래 버튼을 눌러 열리는 제출 양식에 6개를 함께 올려 주세요. 구글 로그인이 필요하며, 6개가 모두 있어야 분석에 사용할 수 있습니다.",
-  uploadUrl: "https://forms.gle/8uaPJdZakv1PmUwX6",
+  submitGuide: "위 압축 파일(.zip)을 아래 주소로 메일에 첨부해 보내 주세요. 파일이 커서 Gmail은 구글 드라이브 링크로, 네이버 메일은 대용량 첨부로 자동 전환됩니다. Gmail에서 보낼 때 '공유' 확인 창이 뜨면 공유를 허용해 주세요. 압축 파일이 저장되지 않았다면 파일 6개를 따로 첨부해 주세요.",
+  submitEmail: "a41224416@gmail.com",
 };
 
 /* ═══════════════════════════════════════════════
@@ -603,7 +605,7 @@ const S = {
   math: null,            // 열려 있는 계산 문제
   lastPair: "",
   stopPromise: null, audioCtx: null,
-  meta: { quiz:{}, schedules:{} },
+  meta: { siteVersion:"2026-11-10", quiz:{}, schedules:{}, eventTiming:[] },
 };
 
 const $ = id => document.getElementById(id);
@@ -963,20 +965,22 @@ function ding(){
   o.start(); o.stop(ac.currentTime + 0.4);
 }
 
-/* 이벤트 시각: 개수 고정, 간격 무작위, 끝부분 여유 확보 */
+/* 이벤트 시각: 개수 고정, 구간 전체에서 균등 무작위, 최소 간격 보장, 끝부분 여유 확보.
+   방법: 남는 여유 시간(room)에서 n개를 균등하게 뽑아 정렬한 뒤 i번째에 i × 최소 간격을 더한다.
+   → 최소 간격을 지키는 모든 배치가 같은 확률로 나온다. */
 function buildSchedule(duration){
   const T = CONFIG.testMode ? CONFIG.test : null;
   const n = T ? T.events : CONFIG.eventsPerVideo;
-  const f0 = T ? T.firstSec : CONFIG.firstEventMinSec, f1 = T ? T.firstSec : CONFIG.firstEventMaxSec;
-  const g0 = T ? T.gapMin : CONFIG.gapMinSec, g1 = T ? T.gapMax : CONFIG.gapMaxSec;
+  const lo = T ? T.firstSec : CONFIG.firstEventMinSec;
+  const g = T ? T.gapMin : CONFIG.minGapSec;
   const limit = duration - (T ? 5 : CONFIG.tailPaddingSec);
-  for(let tries = 0; tries < 500; tries++){
-    const list = [rand(f0, f1)];
-    while(list.length < n) list.push(list[list.length-1] + rand(g0, g1));
-    if(list[n-1] <= limit) return list.map(t => Math.round(t*100)/100);
+  const room = limit - lo - (n - 1) * g;
+  if(room < 0){
+    // 구간이 너무 짧으면 균등 배치
+    return Array.from({length:n}, (_, i) => Math.round((lo + i*(limit - lo)/Math.max(1,n-1))*100)/100);
   }
-  // 구간이 너무 짧으면 균등 배치
-  return Array.from({length:n}, (_, i) => Math.round((f0 + i*(limit - f0)/Math.max(1,n-1))*100)/100);
+  const u = Array.from({length:n}, () => Math.random() * room).sort((a, b) => a - b);
+  return u.map((x, i) => Math.round((lo + x + i * g) * 100) / 100);
 }
 
 /* ── YouTube IFrame API ── */
@@ -1071,6 +1075,9 @@ function runVideo(condition, spec, phase, blockNo, videoKey){
 
     let idx = 0, started = !!T;
     const t0 = performance.now();
+    // 이벤트가 닫힐 때의 강의 시각을 기록하기 위한 시계 (영상이 멈췄는지 확인용)
+    S.lecClock = () => T ? (performance.now() - t0) / 1000
+                         : (S.player && S.player.getCurrentTime ? S.player.getCurrentTime() - (spec.startSec || 0) : null);
     if(!T){ try { S.player.playVideo(); } catch(e){} }
     $("lecStatus").textContent = "";
 
@@ -1174,6 +1181,17 @@ function openProbe(lectureTime, eventIndex){
   S.probeTimer = setTimeout(() => answerProbe("timeout"), CONFIG.probeWindowSec*1000);
 }
 
+/* 이벤트가 열릴 때와 닫힐 때의 강의 시각 (영상은 이벤트 중에도 멈추지 않는다. 버퍼링 등으로 멈추면 차이가 작아진다) */
+function logEventTiming(ctx, eventIndex, openLectureTime){
+  if(!ctx || String(ctx.phase).startsWith("baseline")) return;
+  const close = S.lecClock ? S.lecClock() : null;
+  S.meta.eventTiming.push({
+    block: ctx.block, phase: ctx.phase, event_index: eventIndex,
+    open_lecture_time: openLectureTime === null || openLectureTime === undefined ? null : Math.round(openLectureTime * 100) / 100,
+    close_lecture_time: close === null ? null : Math.round(close * 100) / 100,
+  });
+}
+
 function answerProbe(key){
   if(!$("probe").classList.contains("show")) return;
   clearTimeout(S.probeTimer);
@@ -1187,6 +1205,7 @@ function answerProbe(key){
     response: key,
     response_latency_ms: key === "timeout" ? "" : Math.round(now - S.probeOpenAt),
   });
+  logEventTiming(S.pendingCtx, S.pendingEventIndex, S.pendingLectureTime);
 }
 
 /* ═══════════════════════════════════════════════
@@ -1267,6 +1286,7 @@ function closeMath(kind, pickedPos){
     math_picked_pos: pickedPos ?? "",
     math_correct: kind === "answered" ? (pickedPos === m.correctPos ? 1 : 0) : "",
   });
+  logEventTiming(m.ctx, m.eventIndex, m.lectureTime);
   setTimeout(() => m.resolve(), 250);
 }
 
@@ -1313,8 +1333,11 @@ function runQuiz(videoKey, blockNo){
         const pick = el ? parseInt(el.value,10) : -1;
         return { index:i+1, segment:q.seg, picked:pick, correct: pick === q.answer ? 1 : 0 };
       });
+      // 퀴즈 1번 = 강의 구간 전반부, 2번 = 후반부 (강의 시작 후 초)
+      const v = CONFIG.videos[videoKey], len = (v.endSec || 0) - (v.startSec || 0);
       S.meta.quiz[`block${blockNo}`] = { video:videoKey, answers,
-        score: answers.filter(a => a.correct).length + "/" + answers.length };
+        score: answers.filter(a => a.correct).length + "/" + answers.length,
+        segments: { 1:[0, Math.round(len/2*100)/100], 2:[Math.round(len/2*100)/100, len] } };
       $("btnQuiz").onclick = null;
       res();
     };
@@ -1401,6 +1424,9 @@ function prepareDownloads(){
   S.meta.eventSummary = summarize(S.events);
   S.meta.config = {
     mathFormat:"multiple_choice_3", mathTimeoutSec:CONFIG.mathTimeoutSec,
+    scheduleMethod:"uniform_min_gap", firstEventMinSec:CONFIG.firstEventMinSec,
+    minGapSec:CONFIG.minGapSec, tailPaddingSec:CONFIG.tailPaddingSec,
+    videoPausesDuringEvents:false,
     probeWindowSec:CONFIG.probeWindowSec, eventsPerVideo:CONFIG.eventsPerVideo,
     baselineCount:CONFIG.baselineCount, testMode:CONFIG.testMode,
   };
@@ -1409,7 +1435,7 @@ function prepareDownloads(){
 
   // 세션 공통 정보 (두 파트의 meta.json에 똑같이 들어감)
   const common = { ...S.meta };
-  ["schedules","quiz","recordings","eventCount","eventSummary","mimeType"].forEach(k => delete common[k]);
+  ["schedules","quiz","recordings","eventCount","eventSummary","mimeType","eventTiming"].forEach(k => delete common[k]);
 
   const files = [];
   vids.forEach(({ r, blob }, n) => {
@@ -1422,6 +1448,7 @@ function prepareDownloads(){
       recording: S.meta.recordings[n],
       schedule: S.meta.schedules[key] || null,
       quiz: S.meta.quiz[key] || null,
+      eventTiming: S.meta.eventTiming.filter(e => e.block === r.block),
       eventCount: ev.length, eventSummary: summarize(ev),
     }};
     const label = `파트 ${r.block} ${r.condition === "math" ? "(계산)" : "(프로브)"}`;
@@ -1434,44 +1461,127 @@ function prepareDownloads(){
     );
   });
 
-  $("fileList").innerHTML = files.map((f,i) =>
-    `<div class="fileRow" id="row${i}"><span><b>${f.name}</b><br><span style="color:var(--dim);font-size:13px">${f.desc}</span></span>
-     <button data-i="${i}">저장</button></div>`).join("");
+  // 6개를 압축 파일 하나로 묶어 저장한다. 실패하면 6개를 따로 저장하는 목록으로 넘어간다.
+  const zipName = `${S.pid}_focus_study.zip`;
+  $("fileList").innerHTML =
+    `<div class="fileRow" id="zipRow"><span><b>${zipName}</b><br><span id="zipDesc" style="color:var(--dim);font-size:13px">파일 ${files.length}개를 하나로 묶는 중…</span></span>
+     <button id="btnZip" disabled>저장</button></div>
+     <details id="singleBox" style="margin-top:6px;font-size:13.5px;color:var(--dim)">
+       <summary style="cursor:pointer">압축 파일이 저장되지 않으면: 파일 ${files.length}개 따로 저장</summary>
+       <div class="files" id="fileListSingle" style="margin-top:10px">` +
+    files.map((f,i) =>
+      `<div class="fileRow" id="row${i}"><span><b>${f.name}</b><br><span style="color:var(--dim);font-size:13px">${f.desc}</span></span>
+       <button data-i="${i}">저장</button></div>`).join("") +
+    `</div></details>`;
 
   const saved = new Array(files.length).fill(false);
+  let zipSaved = false;
   function refresh(){
     const n = saved.filter(Boolean).length;
-    const all = n === files.length;
+    const all = zipSaved || n === files.length;
     $("saveState").innerHTML = all
-      ? `<div style="color:var(--ok);font-weight:600">파일 ${files.length}개를 모두 저장했습니다.</div>`
-      : `<div style="color:var(--warn);font-weight:600">${files.length}개 중 ${n}개 저장됨 —
-         나머지 ${files.length - n}개도 꼭 저장해 주세요.</div>`;
-    $("uploadBox").style.display = (all && CONFIG.uploadUrl) ? "block" : "none";
+      ? `<div style="color:var(--ok);font-weight:600">${zipSaved ? `압축 파일(파일 ${files.length}개 포함)을 저장했습니다.` : `파일 ${files.length}개를 모두 저장했습니다.`}</div>`
+      : n > 0
+        ? `<div style="color:var(--warn);font-weight:600">${files.length}개 중 ${n}개 저장됨 — 나머지 ${files.length - n}개도 꼭 저장해 주세요.</div>`
+        : `<div style="color:var(--warn);font-weight:600">압축 파일을 저장해 주세요.</div>`;
+    $("uploadBox").style.display = (all && CONFIG.submitEmail) ? "block" : "none";
   }
-  $("fileList").querySelectorAll("button").forEach(btn => {
+  function saveBlob(blob, name){
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 120000);
+  }
+  function markSaved(btn){ btn.textContent = "다시 저장"; btn.classList.add("ghost"); }
+  $("fileListSingle").querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
-      const i = +btn.dataset.i, f = files[i];
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(f.blob);
-      a.download = f.name;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-      btn.textContent = "다시 저장";
-      btn.classList.add("ghost");
-      saved[i] = true;
-      refresh();
+      const i = +btn.dataset.i;
+      saveBlob(files[i].blob, files[i].name);
+      markSaved(btn); saved[i] = true; refresh();
     });
   });
   refresh();
 
-  if(CONFIG.uploadUrl){
+  if(CONFIG.submitEmail){
+    const to = CONFIG.submitEmail;
+    const su = "[집중도 연구] 데이터 제출";
+    const body = `첨부 파일: ${zipName}\n\n(이 메일에 저장한 압축 파일을 첨부해 보내 주세요.)`;
+    const gmail = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`;
+    const mailto = `mailto:${to}?subject=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`;
+    const pill = "display:inline-block;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:600;margin:0 8px 8px 0";
     $("uploadBox").innerHTML =
-      `<a href="${CONFIG.uploadUrl}" target="_blank" rel="noopener"
-         style="display:inline-block;background:var(--accent);color:var(--bg);text-decoration:none;
-                padding:12px 22px;border-radius:999px;font-weight:600">파일 제출하러 가기</a>`;
+      `<div style="font-size:14px;margin-bottom:12px">받는 주소: <b id="mailAddr" style="user-select:all">${to}</b>
+         <button id="btnCopyMail" class="ghost" style="margin-left:8px;padding:6px 14px;font-size:13px">주소 복사</button></div>
+       <a href="${gmail}" target="_blank" rel="noopener" style="${pill};background:var(--accent);color:var(--bg)">Gmail로 보내기</a>
+       <a href="${mailto}" style="${pill};background:var(--surface-2);color:var(--fg)">메일 앱으로 보내기</a>
+       <div style="font-size:13px;color:var(--dim);margin-top:4px">네이버 등 다른 메일을 쓰면 주소를 복사해 새 메일을 쓰고, 제목에 "데이터 제출"을 넣어 주세요.</div>`;
+    $("btnCopyMail").addEventListener("click", async e => {
+      try { await navigator.clipboard.writeText(to); e.target.textContent = "복사됨"; }
+      catch { getSelection().selectAllChildren($("mailAddr")); e.target.textContent = "Ctrl+C로 복사"; }
+    });
   }
-  setTimeout(() => $("fileList").querySelectorAll("button").forEach((b,i) =>
-    setTimeout(() => b.click(), i*900)), 500);
+
+  makeZip(files).then(zip => {
+    S.zipBlob = zip;
+    $("zipDesc").textContent = `파트 2개의 영상·응답 기록·세션 정보 ${files.length}개 · ${(zip.size/1048576).toFixed(0)} MB`;
+    const b = $("btnZip");
+    b.disabled = false;
+    b.addEventListener("click", () => { saveBlob(zip, zipName); markSaved(b); zipSaved = true; refresh(); });
+    setTimeout(() => b.click(), 300);
+  }).catch(err => {
+    console.error("zip 실패", err);
+    $("zipDesc").textContent = "압축 파일을 만들지 못했습니다. 아래에서 파일을 따로 저장해 주세요.";
+    $("btnZip").style.display = "none";
+    $("singleBox").open = true;
+    setTimeout(() => $("fileListSingle").querySelectorAll("button").forEach((b,i) =>
+      setTimeout(() => b.click(), i*900)), 500);
+  });
+}
+
+/* 무압축(stored) zip 만들기 — 영상(webm)은 이미 압축돼 있어 다시 압축해도 크기가 거의 같다 */
+const CRC_T = (() => {
+  const t = new Uint32Array(256);
+  for(let n = 0; n < 256; n++){ let c = n; for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; }
+  return t;
+})();
+async function crc32(blob){
+  let c = 0xFFFFFFFF;
+  const step = 16 * 1048576;
+  for(let off = 0; off < blob.size; off += step){
+    const u = new Uint8Array(await blob.slice(off, off + step).arrayBuffer());
+    for(let i = 0; i < u.length; i++) c = CRC_T[(c ^ u[i]) & 255] ^ (c >>> 8);
+  }
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+async function makeZip(files){
+  const enc = new TextEncoder(), parts = [], central = [];
+  const d = new Date();
+  const time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+  const date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  let offset = 0;
+  for(const f of files){
+    const name = enc.encode(f.name), size = f.blob.size, crc = await crc32(f.blob);
+    if(offset + 30 + name.length + size > 0xFFFFFFFE) throw new Error("4GB 초과");
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true);
+    h.setUint16(10, time, true); h.setUint16(12, date, true);
+    h.setUint32(14, crc, true); h.setUint32(18, size, true); h.setUint32(22, size, true);
+    h.setUint16(26, name.length, true);
+    parts.push(h.buffer, name, f.blob);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true);
+    c.setUint16(12, time, true); c.setUint16(14, date, true);
+    c.setUint32(16, crc, true); c.setUint32(20, size, true); c.setUint32(24, size, true);
+    c.setUint16(28, name.length, true); c.setUint32(42, offset, true);
+    central.push(c.buffer, name);
+    offset += 30 + name.length + size;
+  }
+  const cdSize = central.reduce((s, x) => s + x.byteLength, 0);
+  const e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+  e.setUint32(12, cdSize, true); e.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, e.buffer], { type: "application/zip" });
 }
 
 // 테스트 스크립트용 노출
